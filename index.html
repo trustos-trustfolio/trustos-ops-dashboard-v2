@@ -1225,6 +1225,39 @@
   .dtl-grid { grid-template-columns: 1fr; }
 }
 
+/* ===== Step 3: KPI flash + Live Queue ===== */
+@keyframes kpiFlash {
+  0%   { color: #ffffff; }
+  45%  { color: #67e8f9; }
+  100% { color: #ffffff; }
+}
+.kpi-flash { animation: kpiFlash .65s ease; }
+
+.status-pill.verifying {
+  background: rgba(59,130,246,0.15);
+  color: #93c5fd;
+}
+.status-pill.verified {
+  background: rgba(34,197,94,0.15);
+  color: #4ade80;
+}
+.status-pill.recorded {
+  background: rgba(103,232,249,0.12);
+  color: #67e8f9;
+}
+
+.queue-row.live-verifying {
+  background: rgba(59,130,246,0.09);
+  border-radius: 10px;
+  outline: 1px solid rgba(59,130,246,0.28);
+}
+
+@keyframes rowIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.queue-row.live-injected { animation: rowIn .3s ease forwards; }
+
   </style>
 
 </head>
@@ -1266,26 +1299,26 @@ Operational confidence tooling for payment operators and stablecoin workflows.
 <div class="ops-kpi-grid">
   <div class="ops-kpi-card">
     <div class="ops-kpi-label">Transactions processed</div>
-    <div class="ops-kpi-value">2,431</div>
-    <div class="ops-kpi-note">Last 24h simulated ops volume</div>
+    <div class="ops-kpi-value" id="kpiTxCount">2,431</div>
+    <div class="ops-kpi-note">Live ops volume · updates each cycle</div>
   </div>
 
   <div class="ops-kpi-card">
     <div class="ops-kpi-label">Auto-reviewed</div>
-    <div class="ops-kpi-value">94%</div>
+    <div class="ops-kpi-value" id="kpiAutoReview">94%</div>
     <div class="ops-kpi-note">Low-risk decisions handled automatically</div>
   </div>
 
   <div class="ops-kpi-card">
     <div class="ops-kpi-label">Escalated</div>
-    <div class="ops-kpi-value">6%</div>
+    <div class="ops-kpi-value" id="kpiEscalated">6%</div>
     <div class="ops-kpi-note">Routed to operator review</div>
   </div>
 
   <div class="ops-kpi-card">
-    <div class="ops-kpi-label">Review burden</div>
-    <div class="ops-kpi-value">−68%</div>
-    <div class="ops-kpi-note">Estimated manual review reduction</div>
+    <div class="ops-kpi-label">Avg Latency</div>
+    <div class="ops-kpi-value" id="kpiLatency">—</div>
+    <div class="ops-kpi-note">Current verification cycle latency</div>
   </div>
 </div>
 
@@ -1390,7 +1423,7 @@ Operational confidence tooling for payment operators and stablecoin workflows.
   Selected transaction: <strong>TX-18474</strong> / Escalated / Operator review required
 </div>
 
-<div class="queue-table">
+<div class="queue-table" id="liveQueueTable">
 
   <div class="queue-row queue-header">
     <div>TX ID</div>
@@ -1929,14 +1962,15 @@ function selectTransaction(type, row) {
 </script>
 
 <script>
-/* Real-time Verification Engine — Step 1 + Step 2 (Decision Timeline, Ledger Hash Chain).
+/* Real-time Verification Engine — Step 1 + Step 2 + Step 3
+   (KPI, Transaction Queue, Decision Output live sync).
    Self-contained. No external libs, no fetch, no API. Auto-starts and loops. */
 (function () {
   var flowEl = document.getElementById("verifyFlow");
   var logEl  = document.getElementById("auditLog");
   if (!flowEl || !logEl) return;
 
-  /* ── Verification Engine steps ── */
+  /* ══ Step 1: Verification Engine steps ══ */
   var steps = [
     { label: "Input Received",        active: "Processing…", done: "Verified",  msg: "Verification started" },
     { label: "AI Risk Analysis",      active: "Processing…", done: "Verified",  msg: "Risk score generated" },
@@ -1948,7 +1982,7 @@ function selectTransaction(type, row) {
     { label: "Completed",             active: "Finalizing…", done: "Completed", msg: "Verification completed" }
   ];
 
-  /* ── Decision Timeline steps ── */
+  /* ══ Step 2: Decision Timeline ══ */
   var dtlDefs = [
     { label: "Intent Captured",      state: "Captured"  },
     { label: "Risk Scored",          state: "Scored"    },
@@ -1957,25 +1991,58 @@ function selectTransaction(type, row) {
     { label: "Ledger Commit",        state: "Committed" },
     { label: "Reconstruction Ready", state: "Ready"     }
   ];
-
-  /*
-    Mapping: vstep index → which DTL step to activate (on vstep start)
-                         → which DTL step to complete (on vstep done)
-    -1 means no DTL action.
-  */
   var DTL_ACT = [ 0,  1,  2,  3, -1,  4, -1,  5];
   var DTL_COM = [ 0,  1,  2, -1,  3, -1,  4,  5];
 
-  /* ── DOM refs — metadata strip ── */
+  /* ══ Step 3: Transaction pool + Decision scenarios ══ */
+  var txPool = [
+    { desc: "Stablecoin Xfer",     net: "USDC", amt: "$84,500",  risk: "HIGH",   rc: "badge-high"   },
+    { desc: "Treasury Approval",   net: "USDT", amt: "$210,000", risk: "HIGH",   rc: "badge-high"   },
+    { desc: "New Beneficiary",     net: "USDC", amt: "$12,300",  risk: "MEDIUM", rc: "badge-medium" },
+    { desc: "High-val Settlement", net: "ETH",  amt: "$156,000", risk: "HIGH",   rc: "badge-high"   },
+    { desc: "Vendor Payout",       net: "USDC", amt: "$8,200",   risk: "LOW",    rc: "badge-low"    },
+    { desc: "Cross-border Wire",   net: "USDT", amt: "$34,700",  risk: "MEDIUM", rc: "badge-medium" },
+    { desc: "Compliance Hold",     net: "ETH",  amt: "$67,000",  risk: "HIGH",   rc: "badge-high"   },
+    { desc: "Routine Payout",      net: "USDC", amt: "$3,100",   risk: "LOW",    rc: "badge-low"    }
+  ];
+
+  var scenarios = [
+    {
+      rec: "REVIEW",   risk: "HIGH",   rc: "badge-high",
+      why:      ["Transfer exceeds policy threshold", "New destination wallet detected", "Cross-border settlement flag"],
+      policies: ["AML Policy v3.2", "High-value Threshold Rule", "Cross-border Settlement Policy"],
+      action:   "Escalated — manager approval required"
+    },
+    {
+      rec: "APPROVED", risk: "LOW",    rc: "badge-low",
+      why:      ["Known beneficiary wallet", "Amount within auto-approval limit", "Historical pattern verified"],
+      policies: ["Auto-approval Policy v2.1", "Low-risk Routing Rule", "Standard Verification"],
+      action:   "Auto-approved and recorded"
+    },
+    {
+      rec: "ESCALATED",risk: "HIGH",   rc: "badge-high",
+      why:      ["Velocity anomaly detected", "Destination wallet — first occurrence", "Treasury threshold exceeded"],
+      policies: ["Escalation Verification Rule", "High-risk Operator Workflow", "Treasury Guardrail Policy"],
+      action:   "Operator escalation required"
+    },
+    {
+      rec: "REVIEW",   risk: "MEDIUM", rc: "badge-medium",
+      why:      ["Vendor payout pattern mismatch", "New IBAN — pending verification", "Amount near review threshold"],
+      policies: ["Vendor Payout Policy v1.4", "Risk Confidence Threshold", "Operational Review Policy v1.0"],
+      action:   "Secondary approval pending"
+    }
+  ];
+
+  /* ── DOM: Verify Engine metadata ── */
   var verIdEl  = document.getElementById("vmVerId");
   var decIdEl  = document.getElementById("vmDecId");
   var latEl    = document.getElementById("vmLatency");
   var statusEl = document.getElementById("vmStatus");
 
-  /* ── DOM refs — Decision Timeline ── */
+  /* ── DOM: Decision Timeline ── */
   var dtlTrack = document.getElementById("dtlTrack");
 
-  /* ── DOM refs — Ledger Panel ── */
+  /* ── DOM: Ledger ── */
   var ledgerBadge   = document.getElementById("ledgerBadge");
   var ledgerDecIdEl = document.getElementById("ledgerDecId");
   var ledgerVerIdEl = document.getElementById("ledgerVerId");
@@ -1983,21 +2050,44 @@ function selectTransaction(type, row) {
   var ledgerPrevEl  = document.getElementById("ledgerPrevHash");
   var ledgerCurrEl  = document.getElementById("ledgerCurrHash");
 
+  /* ── DOM: KPIs ── */
+  var kpiTxEl   = document.getElementById("kpiTxCount");
+  var kpiAutoEl = document.getElementById("kpiAutoReview");
+  var kpiEscEl  = document.getElementById("kpiEscalated");
+  var kpiLatEl  = document.getElementById("kpiLatency");
+
+  /* ── DOM: Transaction Queue ── */
+  var queueTable = document.getElementById("liveQueueTable");
+
+  /* ── DOM: Decision Output ── */
+  var decRecEl    = document.getElementById("recommendationValue");
+  var decRiskEl   = document.getElementById("riskLevelValue");
+  var decBadgeEl  = document.getElementById("riskBadge");
+  var decWhyEl    = document.getElementById("whyList");
+  var decPolEl    = document.getElementById("policyList");
+  var decProofEl  = document.getElementById("proofStatus");
+  var decHashEl   = document.getElementById("proofHash");
+  var decStatusEl = document.getElementById("statusBox");
+
   /* ── State ── */
-  var stepEls = [];
-  var dtlEls  = [];
-  var idx = 0;
-  var curVerId = "";
-  var curDecId = "";
+  var stepEls    = [];
+  var dtlEls     = [];
+  var idx        = 0;
+  var curVerId   = "";
+  var curDecId   = "";
+  var txCounter  = 2431;
+  var autoReview = 94;
+  var scenIdx    = 0;
+  var txIdx      = 0;
+  var txSuffix   = 18476;
+  var liveRow    = null;
 
   /* ── Helpers ── */
   function pad(n) { return n < 10 ? "0" + n : "" + n; }
 
   function hex(n) {
     var s = "";
-    for (var i = 0; i < n; i++) {
-      s += "0123456789ABCDEF".charAt(Math.floor(Math.random() * 16));
-    }
+    for (var i = 0; i < n; i++) s += "0123456789ABCDEF".charAt(Math.floor(Math.random() * 16));
     return s;
   }
 
@@ -2014,7 +2104,15 @@ function selectTransaction(type, row) {
 
   function shortHash() { return "0x" + hex(4) + "…" + hex(4); }
 
-  /* ── Build: Verification Engine step rows ── */
+  function flashEl(el) {
+    if (!el) return;
+    el.classList.remove("kpi-flash");
+    void el.offsetWidth;
+    el.classList.add("kpi-flash");
+    setTimeout(function () { el.classList.remove("kpi-flash"); }, 700);
+  }
+
+  /* ── Build: Verification Engine ── */
   function build() {
     flowEl.innerHTML = "";
     stepEls = [];
@@ -2046,7 +2144,7 @@ function selectTransaction(type, row) {
     });
   }
 
-  /* ── DTL helpers ── */
+  /* ── DTL ── */
   function dtlActivate(i) {
     if (i < 0 || i >= dtlEls.length) return;
     var el = dtlEls[i];
@@ -2063,7 +2161,7 @@ function selectTransaction(type, row) {
     el.querySelector(".dtl-state").textContent = dtlDefs[i].state;
   }
 
-  /* ── Ledger helpers ── */
+  /* ── Ledger ── */
   function ledgerStatus(s) {
     if (!ledgerBadge) return;
     ledgerBadge.className = "ledger-status-badge" +
@@ -2083,7 +2181,69 @@ function selectTransaction(type, row) {
     while (logEl.children.length > 40) logEl.removeChild(logEl.firstChild);
   }
 
-  /* ── New cycle: reset all panels ── */
+  /* ── Queue: inject live row ── */
+  function injectQueueRow(txId, tx) {
+    if (!queueTable) return null;
+    var row = document.createElement("div");
+    row.className = "queue-row live-injected live-verifying";
+    row.setAttribute("data-tx", txId);
+    row.innerHTML =
+      "<div>" + txId + "<br><span style=\"font-size:10px;color:#64748b;\">" + tx.desc + "</span></div>" +
+      "<div>" + tx.net + "</div>" +
+      "<div>" + tx.amt + "</div>" +
+      "<div><span class=\"badge " + tx.rc + "\">" + tx.risk + "</span></div>" +
+      "<div><span class=\"status-pill verifying\">Verifying</span></div>";
+    var header = queueTable.querySelector(".queue-header");
+    if (header && header.nextSibling) {
+      queueTable.insertBefore(row, header.nextSibling);
+    } else {
+      queueTable.appendChild(row);
+    }
+    /* keep at most 6 data rows */
+    var dataRows = queueTable.querySelectorAll(".queue-row:not(.queue-header)");
+    while (dataRows.length > 6) {
+      queueTable.removeChild(dataRows[dataRows.length - 1]);
+      dataRows = queueTable.querySelectorAll(".queue-row:not(.queue-header)");
+    }
+    return row;
+  }
+
+  /* ── Queue: mark verified ── */
+  function completeLiveRow() {
+    if (!liveRow) return;
+    liveRow.classList.remove("live-verifying");
+    var pill = liveRow.querySelector(".status-pill");
+    if (pill) { pill.className = "status-pill verified"; pill.textContent = "Verified"; }
+    liveRow = null;
+  }
+
+  /* ── KPI update ── */
+  function updateKpis(latMs) {
+    txCounter++;
+    if (kpiTxEl) { kpiTxEl.textContent = txCounter.toLocaleString(); flashEl(kpiTxEl); }
+    if (Math.random() < 0.35) {
+      autoReview = Math.max(88, Math.min(96, autoReview + (Math.random() < 0.5 ? 1 : -1)));
+      if (kpiAutoEl) { kpiAutoEl.textContent = autoReview + "%"; flashEl(kpiAutoEl); }
+      if (kpiEscEl)  { kpiEscEl.textContent  = (100 - autoReview) + "%"; flashEl(kpiEscEl); }
+    }
+    if (kpiLatEl) { kpiLatEl.textContent = latMs; flashEl(kpiLatEl); }
+  }
+
+  /* ── Decision Output update ── */
+  function updateDecision() {
+    var s = scenarios[scenIdx % scenarios.length];
+    scenIdx++;
+    if (decRecEl)    decRecEl.textContent  = s.rec;
+    if (decRiskEl)   decRiskEl.textContent = s.risk;
+    if (decBadgeEl)  decBadgeEl.innerHTML  = "<span class=\"badge " + s.rc + "\">" + s.risk + "</span>";
+    if (decWhyEl)    decWhyEl.innerHTML    = s.why.map(function (w) { return "<li>" + w + "</li>"; }).join("");
+    if (decPolEl)    decPolEl.innerHTML    = s.policies.map(function (p) { return "<li>" + p + "</li>"; }).join("");
+    if (decProofEl)  decProofEl.innerHTML  = "<span class=\"proof-ok\">Verified ✅</span>";
+    if (decHashEl)   decHashEl.textContent = "Proof hash: 0x" + hex(8) + "…";
+    if (decStatusEl) decStatusEl.textContent = "Verification complete — " + s.action;
+  }
+
+  /* ── New cycle: reset all panels + inject queue row ── */
   function newRun() {
     var d  = new Date();
     var ds = "" + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate());
@@ -2095,23 +2255,40 @@ function selectTransaction(type, row) {
     if (latEl)    latEl.textContent    = "—";
     if (statusEl) { statusEl.textContent = "Processing"; statusEl.style.color = "#93c5fd"; }
 
-    /* Ledger reset */
     if (ledgerDecIdEl) ledgerDecIdEl.textContent = curDecId;
     if (ledgerVerIdEl) ledgerVerIdEl.textContent = curVerId;
     if (ledgerTsEl)    ledgerTsEl.textContent    = "—";
     if (ledgerPrevEl)  ledgerPrevEl.textContent  = "—";
     if (ledgerCurrEl)  ledgerCurrEl.textContent  = "—";
     ledgerStatus("Pending");
+
+    /* Queue: inject live transaction row */
+    var tx   = txPool[txIdx % txPool.length];
+    txIdx++;
+    var txId = "TX-" + txSuffix++;
+    liveRow  = injectQueueRow(txId, tx);
+    addLog("Transaction " + txId + " submitted for verification");
   }
 
-  /* ── Main tick: drives all three panels in sync ── */
+  /* ── Main tick: drives all panels in sync ── */
   function tick() {
     if (idx >= steps.length) {
-      /* Cycle complete */
+      var latMs = (Math.floor(Math.random() * 500) + 400) + "ms";
+
       if (statusEl) { statusEl.textContent = "Verified"; statusEl.style.color = "#4ade80"; }
-      if (latEl)    latEl.textContent = (Math.floor(Math.random() * 500) + 400) + "ms";
-      dtlComplete(5);      /* Reconstruction Ready */
+      if (latEl)    latEl.textContent = latMs;
+      dtlComplete(5);
       ledgerStatus("Verified");
+
+      /* Step 3: sync all downstream panels */
+      completeLiveRow();
+      updateKpis(latMs);
+      updateDecision();
+
+      addLog("KPI counter updated — " + txCounter.toLocaleString() + " processed");
+      addLog("Transaction status changed to Verified");
+      addLog("Decision output refreshed");
+      addLog("Operational record finalized");
 
       setTimeout(function () {
         idx = 0;
@@ -2127,36 +2304,24 @@ function selectTransaction(type, row) {
     var el      = stepEls[idx];
     var stateEl = el.querySelector(".vstep-state");
 
-    /* Activate vstep */
     el.classList.add("is-active");
     stateEl.textContent = steps[idx].active;
-
-    /* Activate corresponding DTL step */
     dtlActivate(DTL_ACT[idx]);
 
-    /* Ledger: Writing phase starts at step 5 (Audit Log Created) */
     if (idx === 5) {
       ledgerStatus("Writing");
-      if (ledgerTsEl)   ledgerTsEl.textContent   = isoTs();
-      if (ledgerPrevEl) ledgerPrevEl.textContent  = shortHash();
+      if (ledgerTsEl)   ledgerTsEl.textContent  = isoTs();
+      if (ledgerPrevEl) ledgerPrevEl.textContent = shortHash();
     }
 
     setTimeout(function () {
-      /* Complete vstep */
       el.classList.remove("is-active");
       el.classList.add("is-done");
       el.querySelector(".vstep-icon").textContent = "✓";
       stateEl.textContent = steps[idx].done;
       addLog(steps[idx].msg);
-
-      /* Complete corresponding DTL step */
       dtlComplete(DTL_COM[idx]);
-
-      /* Ledger: Current Hash written at step 6 (Ledger Recorded) */
-      if (idx === 6 && ledgerCurrEl) {
-        ledgerCurrEl.textContent = shortHash();
-      }
-
+      if (idx === 6 && ledgerCurrEl) ledgerCurrEl.textContent = shortHash();
       idx++;
       tick();
     }, 600 + Math.floor(Math.random() * 500));
