@@ -1258,6 +1258,129 @@
 }
 .queue-row.live-injected { animation: rowIn .3s ease forwards; }
 
+/* ===== Step 4: Replay / Reconstruction Panel ===== */
+.replay-panel { margin-top: 20px; }
+
+.replay-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.replay-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  letter-spacing: 0.02em;
+}
+
+.replay-btn {
+  background: rgba(103,232,249,0.08);
+  border: 1px solid rgba(103,232,249,0.22);
+  color: #67e8f9;
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 0.28rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: background .18s, border-color .18s, opacity .18s;
+}
+.replay-btn:hover:not(:disabled) {
+  background: rgba(103,232,249,0.16);
+  border-color: rgba(103,232,249,0.42);
+}
+.replay-btn:disabled { opacity: 0.35; cursor: default; }
+
+.replay-caption {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.replay-evidence-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.replay-evidence-list li {
+  font-size: 0.67rem;
+  color: #94a3b8;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  padding: 0.18rem 0.5rem;
+  border-radius: 4px;
+}
+
+.replay-body { margin-top: 0.75rem; }
+
+.replay-steps { display: flex; flex-direction: column; gap: 0; }
+
+.replay-step {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.32rem 0;
+  font-size: 0.73rem;
+  color: #4b5563;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: color .2s;
+}
+.replay-step:last-child { border-bottom: none; }
+
+.replay-step-icon {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  border: 1px solid #334155;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.58rem;
+  flex-shrink: 0;
+  transition: background .2s, border-color .2s;
+}
+.replay-step.is-active { color: #cbd5e1; }
+.replay-step.is-active .replay-step-icon {
+  border-color: #93c5fd;
+  background: rgba(59,130,246,0.15);
+  color: #93c5fd;
+  animation: livePulse 1s ease-in-out infinite;
+}
+.replay-step.is-done { color: #64748b; }
+.replay-step.is-done .replay-step-icon {
+  border-color: #4ade80;
+  background: rgba(34,197,94,0.12);
+  color: #4ade80;
+}
+
+.replay-step-label { flex: 1; }
+
+.replay-step-state {
+  font-size: 0.66rem;
+  color: #475569;
+}
+.replay-step.is-active .replay-step-state { color: #93c5fd; }
+.replay-step.is-done .replay-step-state   { color: #4ade80; }
+
+.replay-summary {
+  margin-top: 0.85rem;
+  padding: 0.65rem 0.8rem;
+  background: rgba(74,222,128,0.06);
+  border: 1px solid rgba(74,222,128,0.18);
+  border-radius: 8px;
+  font-size: 0.71rem;
+  line-height: 1.65;
+}
+.replay-sum-title  { font-size: 0.72rem; font-weight: 600; color: #4ade80; margin-bottom: 0.25rem; }
+.replay-sum-line   { color: #94a3b8; }
+.replay-sum-line strong { color: #cbd5e1; font-weight: 500; }
+.replay-sum-result { color: #4ade80; font-weight: 500; margin-top: 0.3rem; }
+
   </style>
 
 </head>
@@ -1411,6 +1534,25 @@ Operational confidence tooling for payment operators and stablecoin workflows.
     Decision context can be reconstructed from policy, approval, timestamp, and ledger proof.
   </div>
 
+</div>
+
+<div class="card replay-panel" id="replayPanel">
+  <div class="replay-head">
+    <span class="replay-title">Decision Reconstruction</span>
+    <button class="replay-btn" id="replayBtn" disabled>Replay last verification</button>
+  </div>
+  <div class="replay-caption">Last verified decision can be reconstructed from:</div>
+  <ul class="replay-evidence-list">
+    <li>Input context</li>
+    <li>Policy applied</li>
+    <li>Approval state</li>
+    <li>Audit trail</li>
+    <li>Ledger proof</li>
+  </ul>
+  <div class="replay-body" id="replayBody" style="display:none;">
+    <div class="replay-steps" id="replaySteps"></div>
+    <div class="replay-summary" id="replaySummary" style="display:none;"></div>
+  </div>
 </div>
 
 <div class="grid">
@@ -2069,6 +2211,12 @@ function selectTransaction(type, row) {
   var decHashEl   = document.getElementById("proofHash");
   var decStatusEl = document.getElementById("statusBox");
 
+  /* ── DOM: Replay Panel ── */
+  var replayBtnEl     = document.getElementById("replayBtn");
+  var replayBodyEl    = document.getElementById("replayBody");
+  var replayStepsEl   = document.getElementById("replaySteps");
+  var replaySummaryEl = document.getElementById("replaySummary");
+
   /* ── State ── */
   var stepEls    = [];
   var dtlEls     = [];
@@ -2080,7 +2228,12 @@ function selectTransaction(type, row) {
   var scenIdx    = 0;
   var txIdx      = 0;
   var txSuffix   = 18476;
-  var liveRow    = null;
+  var liveRow      = null;
+  var lastPrevHash = "";
+  var lastCurrHash = "";
+  var lastSnapshot = null;
+  var replayStepEls  = [];
+  var replayRunning  = false;
 
   /* ── Helpers ── */
   function pad(n) { return n < 10 ? "0" + n : "" + n; }
@@ -2241,6 +2394,18 @@ function selectTransaction(type, row) {
     if (decProofEl)  decProofEl.innerHTML  = "<span class=\"proof-ok\">Verified ✅</span>";
     if (decHashEl)   decHashEl.textContent = "Proof hash: 0x" + hex(8) + "…";
     if (decStatusEl) decStatusEl.textContent = "Verification complete — " + s.action;
+    /* Step 4: persist snapshot for replay */
+    lastSnapshot = {
+      decId:    curDecId,
+      verId:    curVerId,
+      ts:       isoTs(),
+      policy:   s.policies[0],
+      decision: s.rec,
+      action:   s.action,
+      prevHash: lastPrevHash,
+      currHash: lastCurrHash
+    };
+    if (replayBtnEl && replayBtnEl.disabled) replayBtnEl.disabled = false;
   }
 
   /* ── New cycle: reset all panels + inject queue row ── */
@@ -2310,8 +2475,10 @@ function selectTransaction(type, row) {
 
     if (idx === 5) {
       ledgerStatus("Writing");
+      var ph = shortHash();
+      lastPrevHash = ph;
       if (ledgerTsEl)   ledgerTsEl.textContent  = isoTs();
-      if (ledgerPrevEl) ledgerPrevEl.textContent = shortHash();
+      if (ledgerPrevEl) ledgerPrevEl.textContent = ph;
     }
 
     setTimeout(function () {
@@ -2321,11 +2488,85 @@ function selectTransaction(type, row) {
       stateEl.textContent = steps[idx].done;
       addLog(steps[idx].msg);
       dtlComplete(DTL_COM[idx]);
-      if (idx === 6 && ledgerCurrEl) ledgerCurrEl.textContent = shortHash();
+      if (idx === 6 && ledgerCurrEl) {
+        var ch = shortHash();
+        lastCurrHash = ch;
+        ledgerCurrEl.textContent = ch;
+      }
       idx++;
       tick();
     }, 600 + Math.floor(Math.random() * 500));
   }
+
+  /* ══ Step 4: Replay / Reconstruction ══ */
+  var replayStepDefs = [
+    { label: "Restore decision context", active: "Loading…",    done: "Loaded"   },
+    { label: "Load policy evidence",     active: "Loading…",    done: "Loaded"   },
+    { label: "Rebuild approval chain",   active: "Rebuilding…", done: "Rebuilt"  },
+    { label: "Verify ledger hash",       active: "Verifying…",  done: "Verified" },
+    { label: "Reconstruction complete",  active: "Finalizing…", done: "Complete" }
+  ];
+
+  function buildReplaySteps() {
+    if (!replayStepsEl) return;
+    replayStepsEl.innerHTML = "";
+    replayStepEls = [];
+    replayStepDefs.forEach(function (s, i) {
+      var row = document.createElement("div");
+      row.className = "replay-step";
+      row.innerHTML =
+        '<span class="replay-step-icon">' + (i + 1) + '</span>' +
+        '<span class="replay-step-label">' + s.label + '</span>' +
+        '<span class="replay-step-state">Waiting</span>';
+      replayStepsEl.appendChild(row);
+      replayStepEls.push(row);
+    });
+  }
+
+  function runReplay() {
+    if (replayRunning) return;
+    if (!lastSnapshot) { addLog("No verified decision available for replay"); return; }
+    replayRunning = true;
+    if (replayBtnEl)     replayBtnEl.disabled           = true;
+    if (replayBodyEl)    replayBodyEl.style.display      = "block";
+    if (replaySummaryEl) replaySummaryEl.style.display   = "none";
+    buildReplaySteps();
+    addLog("Replay requested — reconstructing " + lastSnapshot.decId);
+
+    var ri = 0;
+    function replayTick() {
+      if (ri >= replayStepEls.length) {
+        if (replaySummaryEl) {
+          replaySummaryEl.style.display = "block";
+          replaySummaryEl.innerHTML =
+            '<div class="replay-sum-title">Evidence verified</div>' +
+            '<div class="replay-sum-line">Reconstructed from decision <strong>' + lastSnapshot.decId + '</strong></div>' +
+            '<div class="replay-sum-line">Policy: ' + lastSnapshot.policy + '</div>' +
+            '<div class="replay-sum-line">Ledger proof: ' + lastSnapshot.currHash + '</div>' +
+            '<div class="replay-sum-result">Result: Evidence verified ✅</div>';
+        }
+        addLog("Decision context reconstructed — Evidence verified");
+        replayRunning = false;
+        if (replayBtnEl) replayBtnEl.disabled = false;
+        return;
+      }
+      var el = replayStepEls[ri];
+      el.classList.add("is-active");
+      el.querySelector(".replay-step-state").textContent = replayStepDefs[ri].active;
+      setTimeout(function () {
+        el.classList.remove("is-active");
+        el.classList.add("is-done");
+        el.querySelector(".replay-step-icon").textContent = "✓";
+        el.querySelector(".replay-step-state").textContent = replayStepDefs[ri].done;
+        addLog("Replay: " + replayStepDefs[ri].label);
+        ri++;
+        replayTick();
+      }, 700 + Math.floor(Math.random() * 400));
+    }
+    replayTick();
+  }
+
+  if (replayBtnEl) replayBtnEl.addEventListener("click", runReplay);
 
   /* ── Init ── */
   build();
