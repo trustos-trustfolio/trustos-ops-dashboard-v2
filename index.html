@@ -1258,6 +1258,65 @@
 }
 .queue-row.live-injected { animation: rowIn .3s ease forwards; }
 
+/* ===== Step 6: Global Status Bar ===== */
+.gsb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 0.5rem;
+  padding: 0.45rem 0.75rem;
+  background: rgba(15,23,42,0.7);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 0.68rem;
+  letter-spacing: 0.01em;
+}
+.gsb-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 6px #4ade80;
+  flex-shrink: 0;
+  animation: livePulse 2s ease-in-out infinite;
+  margin-right: 0.25rem;
+}
+.gsb-item { white-space: nowrap; }
+.gsb-k { color: #475569; }
+.gsb-v { color: #cbd5e1; margin-left: 0.2rem; }
+.gsb-sep { color: #1e293b; user-select: none; }
+
+/* ===== Step 6: Verify Progress Bar ===== */
+.verify-progress-wrap {
+  margin: 0.65rem 0 0;
+}
+.verify-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.67rem;
+  color: #475569;
+  margin-bottom: 0.3rem;
+}
+.verify-progress-track {
+  height: 3px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.verify-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #67e8f9);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+  width: 0%;
+}
+
+/* ===== Step 6: Queue row clickable ===== */
+.queue-row:not(.queue-header) { cursor: pointer; }
+.queue-row:not(.queue-header):hover:not(.live-verifying) {
+  background: rgba(255,255,255,0.03);
+}
+
 /* Step 5: additional queue status pills */
 .status-pill.auto-reviewed {
   background: rgba(34,197,94,0.12);
@@ -1429,6 +1488,21 @@ Operational confidence tooling for payment operators and stablecoin workflows.
 
     </div>
 
+<div class="gsb">
+  <span class="gsb-dot"></span>
+  <span class="gsb-item"><span class="gsb-k">Engine</span><span class="gsb-v" style="color:#4ade80">Online</span></span>
+  <span class="gsb-sep"> · </span>
+  <span class="gsb-item"><span class="gsb-k">Core API</span><span class="gsb-v">Connected</span></span>
+  <span class="gsb-sep"> · </span>
+  <span class="gsb-item"><span class="gsb-k">Active Verification</span><span class="gsb-v" id="gsbActiveTx">—</span></span>
+  <span class="gsb-sep"> · </span>
+  <span class="gsb-item"><span class="gsb-k">Latency</span><span class="gsb-v" id="gsbLatency">—</span></span>
+  <span class="gsb-sep"> · </span>
+  <span class="gsb-item"><span class="gsb-k">Ledger Entries</span><span class="gsb-v" id="gsbLedgerCount">1,248,442</span></span>
+  <span class="gsb-sep"> · </span>
+  <span class="gsb-item"><span class="gsb-k">Verification</span><span class="gsb-v">#<span id="gsbVerifyCount">10,842</span></span></span>
+</div>
+
 <div class="ops-kpi-grid">
   <div class="ops-kpi-card">
     <div class="ops-kpi-label">Transactions processed</div>
@@ -1486,6 +1560,16 @@ Operational confidence tooling for payment operators and stablecoin workflows.
     <span class="vmeta"><span class="vmeta-k">Decision ID</span><span class="vmeta-v" id="vmDecId">dec_20260507_0142</span></span>
     <span class="vmeta"><span class="vmeta-k">Latency</span><span class="vmeta-v" id="vmLatency">486ms</span></span>
     <span class="vmeta"><span class="vmeta-k">Status</span><span class="vmeta-v vmeta-status" id="vmStatus">Verified</span></span>
+  </div>
+
+  <div class="verify-progress-wrap">
+    <div class="verify-progress-label">
+      <span>Verification Progress</span>
+      <span id="verifyProgressPct">0%</span>
+    </div>
+    <div class="verify-progress-track">
+      <div class="verify-progress-fill" id="verifyProgressFill"></div>
+    </div>
   </div>
 
   <div class="verify-body">
@@ -2086,6 +2170,9 @@ function selectTransaction(type, row) {
     statusBox.textContent =
       `${txId} selected. Execution not recommended.`;
   }
+
+  /* Trigger LIVE engine for this TX */
+  if (window.liveSelectTx) window.liveSelectTx(txId, type);
 }
 </script>
 
@@ -2208,6 +2295,16 @@ function selectTransaction(type, row) {
   /* ── DOM: Review Timeline ── */
   var reviewTimelineEl = document.getElementById("reviewTimeline");
 
+  /* ── DOM: Global Status Bar ── */
+  var gsbTxEl     = document.getElementById("gsbActiveTx");
+  var gsbLatEl    = document.getElementById("gsbLatency");
+  var gsbLedgerEl = document.getElementById("gsbLedgerCount");
+  var gsbCountEl  = document.getElementById("gsbVerifyCount");
+
+  /* ── DOM: Progress Bar ── */
+  var pgFillEl = document.getElementById("verifyProgressFill");
+  var pgPctEl  = document.getElementById("verifyProgressPct");
+
   /* ── DOM: Replay Panel ── */
   var replayBtnEl     = document.getElementById("replayBtn");
   var replayBodyEl    = document.getElementById("replayBody");
@@ -2232,6 +2329,9 @@ function selectTransaction(type, row) {
   var lastSnapshot = null;
   var replayStepEls  = [];
   var replayRunning  = false;
+  var tickTimer      = null;
+  var verifyCount    = 10842;
+  var ledgerCount    = 1248442;
 
   /* ── Helpers ── */
   function pad(n) { return n < 10 ? "0" + n : "" + n; }
@@ -2254,6 +2354,21 @@ function selectTransaction(type, row) {
   }
 
   function shortHash() { return "0x" + hex(4) + "…" + hex(4); }
+
+  function scheduleTick(delay) {
+    clearTimeout(tickTimer);
+    tickTimer = setTimeout(tick, delay);
+  }
+
+  function updateProgressBar(pct) {
+    if (pgFillEl) pgFillEl.style.width = pct + "%";
+    if (pgPctEl)  pgPctEl.textContent  = pct + "%";
+  }
+
+  function updateGsb(txId, latMs) {
+    if (gsbTxEl  && txId  !== undefined) gsbTxEl.textContent  = txId  || "—";
+    if (gsbLatEl && latMs !== undefined) gsbLatEl.textContent = latMs || "—";
+  }
 
   function flashEl(el) {
     if (!el) return;
@@ -2457,6 +2572,8 @@ function selectTransaction(type, row) {
 
     /* Selected TX: show Verifying state immediately */
     updateSelectedTx(curTxId, "Verifying", "Policy evaluation in progress");
+    updateProgressBar(0);
+    updateGsb(curTxId, "—");
     addLog("Transaction " + curTxId + " submitted for verification");
   }
 
@@ -2469,24 +2586,33 @@ function selectTransaction(type, row) {
       if (latEl)    latEl.textContent = latMs;
       dtlComplete(5);
       ledgerStatus("Verified");
+      updateProgressBar(100);
 
-      /* Step 3: sync all downstream panels */
+      /* Sync all downstream panels */
       completeLiveRow();
       updateKpis(latMs);
       updateDecision();
 
+      /* Update counters and GSB */
+      verifyCount++;
+      ledgerCount++;
+      if (gsbLedgerEl) gsbLedgerEl.textContent = ledgerCount.toLocaleString();
+      if (gsbCountEl)  gsbCountEl.textContent  = verifyCount.toLocaleString();
+      updateGsb(curTxId, latMs);
+      if (kpiLatEl) { kpiLatEl.textContent = latMs; flashEl(kpiLatEl); }
+
       addLog("KPI counter updated — " + txCounter.toLocaleString() + " processed");
-      addLog("Transaction status changed to Verified");
-      addLog("Decision output refreshed");
+      addLog("Ledger entry #" + ledgerCount.toLocaleString() + " committed");
+      addLog("Decision output refreshed — verification #" + verifyCount.toLocaleString());
       addLog("Operational record finalized");
 
-      setTimeout(function () {
+      tickTimer = setTimeout(function () {
         idx = 0;
         build();
         buildDtl();
         newRun();
         addLog("New verification cycle initialized");
-        setTimeout(tick, 700);
+        scheduleTick(700);
       }, 2600);
       return;
     }
@@ -2506,7 +2632,7 @@ function selectTransaction(type, row) {
       if (ledgerPrevEl) ledgerPrevEl.textContent = ph;
     }
 
-    setTimeout(function () {
+    tickTimer = setTimeout(function () {
       el.classList.remove("is-active");
       el.classList.add("is-done");
       el.querySelector(".vstep-icon").textContent = "✓";
@@ -2518,7 +2644,7 @@ function selectTransaction(type, row) {
         lastCurrHash = ch;
         ledgerCurrEl.textContent = ch;
       }
-      /* Mid-cycle selectedTx update after Approval Workflow (idx 4) */
+      /* Mid-cycle selectedTx + progress update */
       if (idx === 4 && curScenario) {
         var dr = curScenario.dec;
         var ms, mn;
@@ -2529,6 +2655,7 @@ function selectTransaction(type, row) {
         updateSelectedTx(curTxId, ms, mn);
       }
       idx++;
+      updateProgressBar(Math.round((idx / steps.length) * 100));
       tick();
     }, 600 + Math.floor(Math.random() * 500));
   }
@@ -2578,6 +2705,81 @@ function selectTransaction(type, row) {
         '</div>';
     }).join("");
   }
+
+  /* ══ Step 6: Manual TX selection — exposed as window.liveSelectTx ══ */
+  var scenTypeMap = { approved: 1, pending: 3, escalated: 0, blocked: 4 };
+
+  window.liveSelectTx = function (txId, selType) {
+    /* Cancel any pending timer */
+    clearTimeout(tickTimer);
+
+    /* Clean up current live row */
+    if (liveRow) {
+      liveRow.classList.remove("live-verifying");
+      liveRow = null;
+    }
+
+    /* Clear selection highlight from all rows */
+    if (queueTable) {
+      var allRows = queueTable.querySelectorAll(".queue-row");
+      for (var ri = 0; ri < allRows.length; ri++) {
+        allRows[ri].classList.remove("selected-row", "active-row");
+      }
+    }
+
+    /* Point liveRow at the clicked row */
+    var clickedRow = queueTable
+      ? queueTable.querySelector("[data-tx='" + txId + "']")
+      : null;
+    if (clickedRow) {
+      liveRow = clickedRow;
+      clickedRow.classList.add("live-verifying", "selected-row");
+      var pill = clickedRow.querySelector(".status-pill");
+      if (pill) { pill.className = "status-pill verifying"; pill.textContent = "Verifying"; }
+    }
+
+    /* Pick scenario from clicked row type */
+    var sIdx = scenTypeMap[selType] !== undefined ? scenTypeMap[selType] : 0;
+    idx = 0;
+    curScenario = cycleDefs[sIdx];
+    curTxId = txId;
+
+    /* Reset engine IDs */
+    var d  = new Date();
+    var ds = "" + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate());
+    curVerId = "ver_" + hex(6);
+    curDecId = "dec_" + ds + "_" + ("000" + Math.floor(Math.random() * 9999)).slice(-4);
+
+    if (verIdEl)  verIdEl.textContent  = curVerId;
+    if (decIdEl)  decIdEl.textContent  = curDecId;
+    if (latEl)    latEl.textContent    = "—";
+    if (statusEl) { statusEl.textContent = "Processing"; statusEl.style.color = "#93c5fd"; }
+
+    if (ledgerDecIdEl) ledgerDecIdEl.textContent = curDecId;
+    if (ledgerVerIdEl) ledgerVerIdEl.textContent = curVerId;
+    if (ledgerTsEl)    ledgerTsEl.textContent    = "—";
+    if (ledgerPrevEl)  ledgerPrevEl.textContent  = "—";
+    if (ledgerCurrEl)  ledgerCurrEl.textContent  = "—";
+    ledgerStatus("Pending");
+
+    /* Reset flow panels */
+    build();
+    buildDtl();
+
+    /* Reset progress + GSB */
+    updateSelectedTx(curTxId, "Verifying", "Policy evaluation in progress");
+    updateProgressBar(0);
+    updateGsb(curTxId, "—");
+
+    /* Audit log */
+    addLog("Transaction selected: " + txId);
+    addLog("Manual verification started");
+    addLog("Engine state reset");
+    addLog("Verification cycle restarted");
+
+    /* Fire engine */
+    scheduleTick(400);
+  };
 
   /* ══ Step 4: Replay / Reconstruction ══ */
   var replayStepDefs = [
@@ -2654,7 +2856,9 @@ function selectTransaction(type, row) {
   buildDtl();
   newRun();
   addLog("Verification engine online");
-  setTimeout(tick, 800);
+  if (gsbLedgerEl) gsbLedgerEl.textContent = ledgerCount.toLocaleString();
+  if (gsbCountEl)  gsbCountEl.textContent  = verifyCount.toLocaleString();
+  scheduleTick(800);
 })();
 </script>
 
