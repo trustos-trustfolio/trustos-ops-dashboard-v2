@@ -1051,6 +1051,180 @@
   .audit-line { animation: none; opacity: 1; transform: none; }
 }
 
+/* ===== Step 2: Decision Timeline + Ledger Hash Chain ===== */
+.dtl-divider {
+  border: none;
+  border-top: 1px solid #1e2d4a;
+  margin: 20px 0 18px;
+}
+
+.dtl-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.dtl-head {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: #94a3b8;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.dtl-track {
+  border-left: 2px solid #22314e;
+  padding-left: 14px;
+  margin-left: 6px;
+}
+
+.dtl-step {
+  position: relative;
+  padding: 5px 0 9px;
+}
+
+.dtl-step::before {
+  content: '';
+  position: absolute;
+  left: -19px;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: 1px solid #314164;
+  background: #0b1020;
+  transition: background .3s, border-color .3s, box-shadow .3s;
+}
+
+.dtl-step.is-active::before {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.22);
+}
+
+.dtl-step.is-done::before {
+  background: #16a34a;
+  border-color: #16a34a;
+  box-shadow: none;
+}
+
+.dtl-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  transition: color .3s;
+}
+
+.dtl-step.is-active .dtl-label { color: #93c5fd; }
+.dtl-step.is-done  .dtl-label { color: #e2e8f0; }
+
+.dtl-state {
+  font-size: 10px;
+  color: #334155;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  margin-top: 2px;
+  transition: color .3s;
+}
+
+.dtl-step.is-active .dtl-state { color: #60a5fa; }
+.dtl-step.is-done  .dtl-state  { color: #4ade80; }
+
+/* Ledger Hash Chain */
+.ledger-panel {
+  background: #09101f;
+  border: 1px solid #22314e;
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.ledger-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.ledger-status-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid #314164;
+  background: rgba(100,116,139,0.12);
+  color: #64748b;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  transition: background .4s, color .4s, border-color .4s;
+}
+
+.ledger-status-badge.is-writing {
+  border-color: rgba(251,191,36,0.4);
+  background: rgba(245,158,11,0.12);
+  color: #fbbf24;
+}
+
+.ledger-status-badge.is-verified {
+  border-color: rgba(74,222,128,0.4);
+  background: rgba(34,197,94,0.12);
+  color: #4ade80;
+}
+
+.ledger-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(34,49,78,0.5);
+}
+
+.ledger-field:last-of-type { border-bottom: none; }
+
+.ledger-k {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #475569;
+  font-weight: 700;
+}
+
+.ledger-v {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  transition: color .4s;
+}
+
+.ledger-hash { color: #67e8f9; }
+
+.ledger-chain-note {
+  margin-top: 10px;
+  font-size: 10px;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  text-align: center;
+}
+
+.recon-note {
+  margin-top: 16px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(103,232,249,0.12);
+  background: rgba(103,232,249,0.03);
+  color: #475569;
+  font-size: 11px;
+  font-style: italic;
+  text-align: center;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+}
+
+@media (max-width: 860px) {
+  .dtl-grid { grid-template-columns: 1fr; }
+}
+
   </style>
 
 </head>
@@ -1162,6 +1336,46 @@ Operational confidence tooling for payment operators and stablecoin workflows.
       <div class="audit-log" id="auditLog"></div>
     </div>
 
+  </div>
+
+  <hr class="dtl-divider">
+
+  <div class="dtl-grid">
+    <div>
+      <div class="dtl-head">Decision Timeline</div>
+      <div class="dtl-track" id="dtlTrack"></div>
+    </div>
+    <div class="ledger-panel">
+      <div class="ledger-head">
+        <span class="dtl-head" style="margin-bottom:0;">Ledger Entry</span>
+        <span class="ledger-status-badge" id="ledgerBadge">Pending</span>
+      </div>
+      <div class="ledger-field">
+        <span class="ledger-k">Decision ID</span>
+        <span class="ledger-v" id="ledgerDecId">—</span>
+      </div>
+      <div class="ledger-field">
+        <span class="ledger-k">Verification ID</span>
+        <span class="ledger-v" id="ledgerVerId">—</span>
+      </div>
+      <div class="ledger-field">
+        <span class="ledger-k">Timestamp</span>
+        <span class="ledger-v" id="ledgerTs">—</span>
+      </div>
+      <div class="ledger-field">
+        <span class="ledger-k">Previous Hash</span>
+        <span class="ledger-v ledger-hash" id="ledgerPrevHash">—</span>
+      </div>
+      <div class="ledger-field">
+        <span class="ledger-k">Current Hash</span>
+        <span class="ledger-v ledger-hash" id="ledgerCurrHash">—</span>
+      </div>
+      <div class="ledger-chain-note">Tamper-evident · append-only ledger</div>
+    </div>
+  </div>
+
+  <div class="recon-note">
+    Decision context can be reconstructed from policy, approval, timestamp, and ledger proof.
   </div>
 
 </div>
@@ -1715,13 +1929,14 @@ function selectTransaction(type, row) {
 </script>
 
 <script>
-/* Real-time Verification Engine — self-contained LIVE simulation.
-   No external libraries, no network calls. Auto-starts and loops. */
+/* Real-time Verification Engine — Step 1 + Step 2 (Decision Timeline, Ledger Hash Chain).
+   Self-contained. No external libs, no fetch, no API. Auto-starts and loops. */
 (function () {
   var flowEl = document.getElementById("verifyFlow");
-  var logEl = document.getElementById("auditLog");
+  var logEl  = document.getElementById("auditLog");
   if (!flowEl || !logEl) return;
 
+  /* ── Verification Engine steps ── */
   var steps = [
     { label: "Input Received",        active: "Processing…", done: "Verified",  msg: "Verification started" },
     { label: "AI Risk Analysis",      active: "Processing…", done: "Verified",  msg: "Risk score generated" },
@@ -1733,14 +1948,49 @@ function selectTransaction(type, row) {
     { label: "Completed",             active: "Finalizing…", done: "Completed", msg: "Verification completed" }
   ];
 
+  /* ── Decision Timeline steps ── */
+  var dtlDefs = [
+    { label: "Intent Captured",      state: "Captured"  },
+    { label: "Risk Scored",          state: "Scored"    },
+    { label: "Policy Applied",       state: "Applied"   },
+    { label: "Approval Decision",    state: "Decided"   },
+    { label: "Ledger Commit",        state: "Committed" },
+    { label: "Reconstruction Ready", state: "Ready"     }
+  ];
+
+  /*
+    Mapping: vstep index → which DTL step to activate (on vstep start)
+                         → which DTL step to complete (on vstep done)
+    -1 means no DTL action.
+  */
+  var DTL_ACT = [ 0,  1,  2,  3, -1,  4, -1,  5];
+  var DTL_COM = [ 0,  1,  2, -1,  3, -1,  4,  5];
+
+  /* ── DOM refs — metadata strip ── */
   var verIdEl  = document.getElementById("vmVerId");
   var decIdEl  = document.getElementById("vmDecId");
   var latEl    = document.getElementById("vmLatency");
   var statusEl = document.getElementById("vmStatus");
 
-  var stepEls = [];
-  var idx = 0;
+  /* ── DOM refs — Decision Timeline ── */
+  var dtlTrack = document.getElementById("dtlTrack");
 
+  /* ── DOM refs — Ledger Panel ── */
+  var ledgerBadge   = document.getElementById("ledgerBadge");
+  var ledgerDecIdEl = document.getElementById("ledgerDecId");
+  var ledgerVerIdEl = document.getElementById("ledgerVerId");
+  var ledgerTsEl    = document.getElementById("ledgerTs");
+  var ledgerPrevEl  = document.getElementById("ledgerPrevHash");
+  var ledgerCurrEl  = document.getElementById("ledgerCurrHash");
+
+  /* ── State ── */
+  var stepEls = [];
+  var dtlEls  = [];
+  var idx = 0;
+  var curVerId = "";
+  var curDecId = "";
+
+  /* ── Helpers ── */
   function pad(n) { return n < 10 ? "0" + n : "" + n; }
 
   function hex(n) {
@@ -1756,6 +2006,15 @@ function selectTransaction(type, row) {
     return pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
   }
 
+  function isoTs() {
+    var d = new Date();
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) +
+      " " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()) + " JST";
+  }
+
+  function shortHash() { return "0x" + hex(4) + "…" + hex(4); }
+
+  /* ── Build: Verification Engine step rows ── */
   function build() {
     flowEl.innerHTML = "";
     stepEls = [];
@@ -1771,6 +2030,48 @@ function selectTransaction(type, row) {
     });
   }
 
+  /* ── Build: Decision Timeline ── */
+  function buildDtl() {
+    if (!dtlTrack) return;
+    dtlTrack.innerHTML = "";
+    dtlEls = [];
+    dtlDefs.forEach(function (s) {
+      var el = document.createElement("div");
+      el.className = "dtl-step";
+      el.innerHTML =
+        '<div class="dtl-label">' + s.label + '</div>' +
+        '<div class="dtl-state">Pending</div>';
+      dtlTrack.appendChild(el);
+      dtlEls.push(el);
+    });
+  }
+
+  /* ── DTL helpers ── */
+  function dtlActivate(i) {
+    if (i < 0 || i >= dtlEls.length) return;
+    var el = dtlEls[i];
+    if (el.classList.contains("is-done")) return;
+    el.classList.add("is-active");
+    el.querySelector(".dtl-state").textContent = "Processing…";
+  }
+
+  function dtlComplete(i) {
+    if (i < 0 || i >= dtlEls.length) return;
+    var el = dtlEls[i];
+    el.classList.remove("is-active");
+    el.classList.add("is-done");
+    el.querySelector(".dtl-state").textContent = dtlDefs[i].state;
+  }
+
+  /* ── Ledger helpers ── */
+  function ledgerStatus(s) {
+    if (!ledgerBadge) return;
+    ledgerBadge.className = "ledger-status-badge" +
+      (s === "Writing" ? " is-writing" : s === "Verified" ? " is-verified" : "");
+    ledgerBadge.textContent = s;
+  }
+
+  /* ── Audit log ── */
   function addLog(msg) {
     var line = document.createElement("div");
     line.className = "audit-line";
@@ -1779,29 +2080,43 @@ function selectTransaction(type, row) {
       '<span class="audit-msg">' + msg + '</span>';
     logEl.appendChild(line);
     logEl.scrollTop = logEl.scrollHeight;
-    while (logEl.children.length > 40) {
-      logEl.removeChild(logEl.firstChild);
-    }
+    while (logEl.children.length > 40) logEl.removeChild(logEl.firstChild);
   }
 
+  /* ── New cycle: reset all panels ── */
   function newRun() {
-    var d = new Date();
+    var d  = new Date();
     var ds = "" + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate());
-    verIdEl.textContent = "ver_" + hex(6);
-    decIdEl.textContent = "dec_" + ds + "_" + ("000" + Math.floor(Math.random() * 9999)).slice(-4);
-    latEl.textContent = "—";
-    statusEl.textContent = "Processing";
-    statusEl.style.color = "#93c5fd";
+    curVerId = "ver_" + hex(6);
+    curDecId = "dec_" + ds + "_" + ("000" + Math.floor(Math.random() * 9999)).slice(-4);
+
+    if (verIdEl)  verIdEl.textContent  = curVerId;
+    if (decIdEl)  decIdEl.textContent  = curDecId;
+    if (latEl)    latEl.textContent    = "—";
+    if (statusEl) { statusEl.textContent = "Processing"; statusEl.style.color = "#93c5fd"; }
+
+    /* Ledger reset */
+    if (ledgerDecIdEl) ledgerDecIdEl.textContent = curDecId;
+    if (ledgerVerIdEl) ledgerVerIdEl.textContent = curVerId;
+    if (ledgerTsEl)    ledgerTsEl.textContent    = "—";
+    if (ledgerPrevEl)  ledgerPrevEl.textContent  = "—";
+    if (ledgerCurrEl)  ledgerCurrEl.textContent  = "—";
+    ledgerStatus("Pending");
   }
 
+  /* ── Main tick: drives all three panels in sync ── */
   function tick() {
     if (idx >= steps.length) {
-      statusEl.textContent = "Verified";
-      statusEl.style.color = "#4ade80";
-      latEl.textContent = (Math.floor(Math.random() * 500) + 400) + "ms";
+      /* Cycle complete */
+      if (statusEl) { statusEl.textContent = "Verified"; statusEl.style.color = "#4ade80"; }
+      if (latEl)    latEl.textContent = (Math.floor(Math.random() * 500) + 400) + "ms";
+      dtlComplete(5);      /* Reconstruction Ready */
+      ledgerStatus("Verified");
+
       setTimeout(function () {
         idx = 0;
         build();
+        buildDtl();
         newRun();
         addLog("New verification cycle initialized");
         setTimeout(tick, 700);
@@ -1809,23 +2124,47 @@ function selectTransaction(type, row) {
       return;
     }
 
-    var el = stepEls[idx];
+    var el      = stepEls[idx];
     var stateEl = el.querySelector(".vstep-state");
+
+    /* Activate vstep */
     el.classList.add("is-active");
     stateEl.textContent = steps[idx].active;
 
+    /* Activate corresponding DTL step */
+    dtlActivate(DTL_ACT[idx]);
+
+    /* Ledger: Writing phase starts at step 5 (Audit Log Created) */
+    if (idx === 5) {
+      ledgerStatus("Writing");
+      if (ledgerTsEl)   ledgerTsEl.textContent   = isoTs();
+      if (ledgerPrevEl) ledgerPrevEl.textContent  = shortHash();
+    }
+
     setTimeout(function () {
+      /* Complete vstep */
       el.classList.remove("is-active");
       el.classList.add("is-done");
       el.querySelector(".vstep-icon").textContent = "✓";
       stateEl.textContent = steps[idx].done;
       addLog(steps[idx].msg);
+
+      /* Complete corresponding DTL step */
+      dtlComplete(DTL_COM[idx]);
+
+      /* Ledger: Current Hash written at step 6 (Ledger Recorded) */
+      if (idx === 6 && ledgerCurrEl) {
+        ledgerCurrEl.textContent = shortHash();
+      }
+
       idx++;
       tick();
     }, 600 + Math.floor(Math.random() * 500));
   }
 
+  /* ── Init ── */
   build();
+  buildDtl();
   newRun();
   addLog("Verification engine online");
   setTimeout(tick, 800);
