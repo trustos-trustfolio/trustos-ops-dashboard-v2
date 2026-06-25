@@ -2450,9 +2450,19 @@ function selectTransaction(type, row) {
   /* ── Queue: inject live row ── */
   function injectQueueRow(txId, tx) {
     if (!queueTable) return null;
+
+    /* Capture selType at injection time so onclick stays correct after curScenario changes */
+    var rec = curScenario ? curScenario.dec.rec : "";
+    var selType = rec === "BLOCK" ? "blocked"
+      : rec === "ESCALATED" ? "escalated"
+      : tx.risk === "LOW"  ? "approved"
+      : tx.risk === "HIGH" ? "escalated"
+      : "pending";
+
     var row = document.createElement("div");
     row.className = "queue-row live-injected live-verifying";
     row.setAttribute("data-tx", txId);
+    row.setAttribute("onclick", "if(window.liveSelectTx)window.liveSelectTx('" + txId + "','" + selType + "')");
     row.innerHTML =
       "<div>" + txId + "<br><span style=\"font-size:10px;color:#64748b;\">" + tx.desc + "</span></div>" +
       "<div>" + tx.net + "</div>" +
