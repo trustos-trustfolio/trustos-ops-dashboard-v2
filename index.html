@@ -836,6 +836,221 @@
   outline: 1px solid rgba(103,232,249,0.25);
 }
 
+/* ===== Real-time Verification Engine (LIVE) ===== */
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(74,222,128,0.35);
+  background: rgba(34,197,94,0.10);
+  color: #4ade80;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #4ade80;
+  box-shadow: 0 0 0 0 rgba(74,222,128,0.6);
+  animation: livePulse 1.6s infinite;
+}
+
+@keyframes livePulse {
+  0%   { box-shadow: 0 0 0 0 rgba(74,222,128,0.55); opacity: 1; }
+  70%  { box-shadow: 0 0 0 7px rgba(74,222,128,0); opacity: 0.85; }
+  100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); opacity: 1; }
+}
+
+.hero-live {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 14px 0 2px;
+}
+
+.hero-live .live-caption {
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.verify-engine { margin-top: 28px; }
+
+.verify-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.verify-sub {
+  color: #94a3b8;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.verify-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0 4px;
+}
+
+.vmeta {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 1px solid #22314e;
+  border-radius: 10px;
+  background: #0f162b;
+  min-width: 120px;
+}
+
+.vmeta-k {
+  color: #94a3b8;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.vmeta-v {
+  color: #dbeafe;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+}
+
+.vmeta-status { color: #4ade80; }
+
+.verify-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 16px;
+}
+
+.verify-flow { display: flex; flex-direction: column; gap: 8px; }
+
+.vstep {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #22314e;
+  border-radius: 12px;
+  background: #0f162b;
+  transition: border-color .3s, background .3s;
+}
+
+.vstep-icon {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 999px;
+  border: 1px solid #314164;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #94a3b8;
+}
+
+.vstep-label { font-size: 13px; font-weight: 700; color: #cbd5e1; flex: 1; }
+
+.vstep-state {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+}
+
+.vstep.is-active {
+  border-color: rgba(59,130,246,0.55);
+  background: rgba(59,130,246,0.08);
+}
+
+.vstep.is-active .vstep-icon { border-color: #3b82f6; color: #93c5fd; }
+.vstep.is-active .vstep-state { color: #93c5fd; }
+
+.vstep.is-done .vstep-icon {
+  border-color: #16a34a;
+  background: rgba(34,197,94,0.15);
+  color: #4ade80;
+}
+
+.vstep.is-done .vstep-label { color: #e2e8f0; }
+.vstep.is-done .vstep-state { color: #4ade80; }
+
+.audit-panel {
+  border: 1px solid #22314e;
+  border-radius: 14px;
+  background: #09101f;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.audit-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.audit-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #67e8f9;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.audit-log {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #dbeafe;
+  min-height: 220px;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.audit-line {
+  display: flex;
+  gap: 12px;
+  opacity: 0;
+  transform: translateY(4px);
+  animation: auditIn .35s ease forwards;
+  border-bottom: 1px solid rgba(34,49,78,0.5);
+  padding: 2px 0;
+}
+
+.audit-time { color: #67e8f9; flex: none; }
+.audit-msg { color: #cbd5e1; }
+
+@keyframes auditIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 860px) {
+  .verify-body { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot { animation: none; }
+  .audit-line { animation: none; opacity: 1; transform: none; }
+}
+
   </style>
 
 </head>
@@ -866,6 +1081,11 @@ Trust OS — Operational Confidence Dashboard
 
 Operational confidence tooling for payment operators and stablecoin workflows.
       </p>
+
+      <div class="hero-live">
+        <span class="live-badge"><span class="live-dot"></span> LIVE</span>
+        <span class="live-caption">Real-time Verification</span>
+      </div>
 
     </div>
 
@@ -907,6 +1127,41 @@ Operational confidence tooling for payment operators and stablecoin workflows.
 
   <div class="metadata-pill">
     Works alongside existing payment infrastructure
+  </div>
+
+</div>
+
+<div class="card verify-engine" id="verifyEngine">
+
+  <div class="verify-head">
+    <div>
+      <h2 style="margin-bottom:2px;">Real-time Verification Engine</h2>
+      <div class="verify-sub">Decision governance pipeline · streaming</div>
+    </div>
+    <div class="live-badge"><span class="live-dot"></span> LIVE</div>
+  </div>
+
+  <div class="verify-meta" id="verifyMeta">
+    <span class="vmeta"><span class="vmeta-k">Verification ID</span><span class="vmeta-v" id="vmVerId">ver_8F3A91</span></span>
+    <span class="vmeta"><span class="vmeta-k">Decision ID</span><span class="vmeta-v" id="vmDecId">dec_20260507_0142</span></span>
+    <span class="vmeta"><span class="vmeta-k">Latency</span><span class="vmeta-v" id="vmLatency">486ms</span></span>
+    <span class="vmeta"><span class="vmeta-k">Status</span><span class="vmeta-v vmeta-status" id="vmStatus">Verified</span></span>
+  </div>
+
+  <div class="verify-body">
+
+    <div class="verify-flow" id="verifyFlow">
+      <!-- verification steps injected by script -->
+    </div>
+
+    <div class="audit-panel">
+      <div class="audit-head">
+        <div class="metric-label" style="margin:0;">Audit Log</div>
+        <span class="audit-live"><span class="live-dot"></span> streaming</span>
+      </div>
+      <div class="audit-log" id="auditLog"></div>
+    </div>
+
   </div>
 
 </div>
@@ -1458,7 +1713,125 @@ function selectTransaction(type, row) {
   }
 }
 </script>
-  
+
+<script>
+/* Real-time Verification Engine — self-contained LIVE simulation.
+   No external libraries, no network calls. Auto-starts and loops. */
+(function () {
+  var flowEl = document.getElementById("verifyFlow");
+  var logEl = document.getElementById("auditLog");
+  if (!flowEl || !logEl) return;
+
+  var steps = [
+    { label: "Input Received",        active: "Processing…", done: "Verified",  msg: "Verification started" },
+    { label: "AI Risk Analysis",      active: "Processing…", done: "Verified",  msg: "Risk score generated" },
+    { label: "Policy Evaluation",     active: "Processing…", done: "Verified",  msg: "Policy evaluation complete" },
+    { label: "Decision Verification", active: "Processing…", done: "Verified",  msg: "Decision verified" },
+    { label: "Approval Workflow",     active: "Processing…", done: "Verified",  msg: "Approved by operator" },
+    { label: "Audit Log Created",     active: "Recording…",  done: "Completed", msg: "Audit entry created" },
+    { label: "Ledger Recorded",       active: "Recording…",  done: "Completed", msg: "Ledger written" },
+    { label: "Completed",             active: "Finalizing…", done: "Completed", msg: "Verification completed" }
+  ];
+
+  var verIdEl  = document.getElementById("vmVerId");
+  var decIdEl  = document.getElementById("vmDecId");
+  var latEl    = document.getElementById("vmLatency");
+  var statusEl = document.getElementById("vmStatus");
+
+  var stepEls = [];
+  var idx = 0;
+
+  function pad(n) { return n < 10 ? "0" + n : "" + n; }
+
+  function hex(n) {
+    var s = "";
+    for (var i = 0; i < n; i++) {
+      s += "0123456789ABCDEF".charAt(Math.floor(Math.random() * 16));
+    }
+    return s;
+  }
+
+  function nowTime() {
+    var d = new Date();
+    return pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
+  }
+
+  function build() {
+    flowEl.innerHTML = "";
+    stepEls = [];
+    steps.forEach(function (s, i) {
+      var row = document.createElement("div");
+      row.className = "vstep";
+      row.innerHTML =
+        '<span class="vstep-icon">' + (i + 1) + '</span>' +
+        '<span class="vstep-label">' + s.label + '</span>' +
+        '<span class="vstep-state">Queued</span>';
+      flowEl.appendChild(row);
+      stepEls.push(row);
+    });
+  }
+
+  function addLog(msg) {
+    var line = document.createElement("div");
+    line.className = "audit-line";
+    line.innerHTML =
+      '<span class="audit-time">' + nowTime() + '</span>' +
+      '<span class="audit-msg">' + msg + '</span>';
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+    while (logEl.children.length > 40) {
+      logEl.removeChild(logEl.firstChild);
+    }
+  }
+
+  function newRun() {
+    var d = new Date();
+    var ds = "" + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate());
+    verIdEl.textContent = "ver_" + hex(6);
+    decIdEl.textContent = "dec_" + ds + "_" + ("000" + Math.floor(Math.random() * 9999)).slice(-4);
+    latEl.textContent = "—";
+    statusEl.textContent = "Processing";
+    statusEl.style.color = "#93c5fd";
+  }
+
+  function tick() {
+    if (idx >= steps.length) {
+      statusEl.textContent = "Verified";
+      statusEl.style.color = "#4ade80";
+      latEl.textContent = (Math.floor(Math.random() * 500) + 400) + "ms";
+      setTimeout(function () {
+        idx = 0;
+        build();
+        newRun();
+        addLog("New verification cycle initialized");
+        setTimeout(tick, 700);
+      }, 2600);
+      return;
+    }
+
+    var el = stepEls[idx];
+    var stateEl = el.querySelector(".vstep-state");
+    el.classList.add("is-active");
+    stateEl.textContent = steps[idx].active;
+
+    setTimeout(function () {
+      el.classList.remove("is-active");
+      el.classList.add("is-done");
+      el.querySelector(".vstep-icon").textContent = "✓";
+      stateEl.textContent = steps[idx].done;
+      addLog(steps[idx].msg);
+      idx++;
+      tick();
+    }, 600 + Math.floor(Math.random() * 500));
+  }
+
+  build();
+  newRun();
+  addLog("Verification engine online");
+  setTimeout(tick, 800);
+})();
+</script>
+
 </body>
 
 </html>
