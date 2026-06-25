@@ -1258,6 +1258,16 @@
 }
 .queue-row.live-injected { animation: rowIn .3s ease forwards; }
 
+/* Step 5: additional queue status pills */
+.status-pill.auto-reviewed {
+  background: rgba(34,197,94,0.12);
+  color: #4ade80;
+}
+.status-pill.approval-required {
+  background: rgba(245,158,11,0.12);
+  color: #fbbf24;
+}
+
 /* ===== Step 4: Replay / Reconstruction Panel ===== */
 .replay-panel { margin-top: 20px; }
 
@@ -1690,36 +1700,12 @@ Operational confidence tooling for payment operators and stablecoin workflows.
     Review Timeline
   </div>
 
-  <div class="timeline">
+  <div class="timeline" id="reviewTimeline">
 
     <div class="timeline-item">
-      <div class="timeline-time">09:41 UTC</div>
-      <div class="timeline-title">
-        AI flagged transaction
-      </div>
-      <div class="timeline-text">
-        High-value transfer triggered operational review.
-      </div>
-    </div>
-
-    <div class="timeline-item">
-      <div class="timeline-time">09:42 UTC</div>
-      <div class="timeline-title">
-        Escalated to operator
-      </div>
-      <div class="timeline-text">
-        Risk threshold exceeded internal review policy.
-      </div>
-    </div>
-
-    <div class="timeline-item">
-      <div class="timeline-time">09:44 UTC</div>
-      <div class="timeline-title">
-        Verification completed
-      </div>
-      <div class="timeline-text">
-        Verification hash generated and audit trail recorded.
-      </div>
+      <div class="timeline-time">—</div>
+      <div class="timeline-title">Waiting for first cycle…</div>
+      <div class="timeline-text">Timeline updates with each verification cycle.</div>
     </div>
 
   </div>
@@ -2104,8 +2090,8 @@ function selectTransaction(type, row) {
 </script>
 
 <script>
-/* Real-time Verification Engine — Step 1 + Step 2 + Step 3
-   (KPI, Transaction Queue, Decision Output live sync).
+/* Real-time Verification Engine — Step 1–5
+   (KPI, Transaction Queue, Decision Output, Review Timeline — fully synced).
    Self-contained. No external libs, no fetch, no API. Auto-starts and loops. */
 (function () {
   var flowEl = document.getElementById("verifyFlow");
@@ -2136,42 +2122,47 @@ function selectTransaction(type, row) {
   var DTL_ACT = [ 0,  1,  2,  3, -1,  4, -1,  5];
   var DTL_COM = [ 0,  1,  2, -1,  3, -1,  4,  5];
 
-  /* ══ Step 3: Transaction pool + Decision scenarios ══ */
-  var txPool = [
-    { desc: "Stablecoin Xfer",     net: "USDC", amt: "$84,500",  risk: "HIGH",   rc: "badge-high"   },
-    { desc: "Treasury Approval",   net: "USDT", amt: "$210,000", risk: "HIGH",   rc: "badge-high"   },
-    { desc: "New Beneficiary",     net: "USDC", amt: "$12,300",  risk: "MEDIUM", rc: "badge-medium" },
-    { desc: "High-val Settlement", net: "ETH",  amt: "$156,000", risk: "HIGH",   rc: "badge-high"   },
-    { desc: "Vendor Payout",       net: "USDC", amt: "$8,200",   risk: "LOW",    rc: "badge-low"    },
-    { desc: "Cross-border Wire",   net: "USDT", amt: "$34,700",  risk: "MEDIUM", rc: "badge-medium" },
-    { desc: "Compliance Hold",     net: "ETH",  amt: "$67,000",  risk: "HIGH",   rc: "badge-high"   },
-    { desc: "Routine Payout",      net: "USDC", amt: "$3,100",   risk: "LOW",    rc: "badge-low"    }
-  ];
-
-  var scenarios = [
+  /* ══ Step 3 + 5: Unified cycle definitions (TX + Decision + Timeline paired) ══ */
+  var cycleDefs = [
     {
-      rec: "REVIEW",   risk: "HIGH",   rc: "badge-high",
-      why:      ["Transfer exceeds policy threshold", "New destination wallet detected", "Cross-border settlement flag"],
-      policies: ["AML Policy v3.2", "High-value Threshold Rule", "Cross-border Settlement Policy"],
-      action:   "Escalated — manager approval required"
+      tlKey: "HIGH",
+      tx:  { desc: "Stablecoin Xfer",   net: "USDC", amt: "$84,500",  risk: "HIGH",   rc: "badge-high"   },
+      dec: { rec: "REVIEW",    risk: "HIGH",   rc: "badge-high",
+             why:      ["Transfer exceeds policy threshold", "New destination wallet detected", "Cross-border settlement flag"],
+             policies: ["AML Policy v3.2", "High-value Threshold Rule", "Cross-border Settlement Policy"],
+             action:   "Escalated — manager approval required" }
     },
     {
-      rec: "APPROVED", risk: "LOW",    rc: "badge-low",
-      why:      ["Known beneficiary wallet", "Amount within auto-approval limit", "Historical pattern verified"],
-      policies: ["Auto-approval Policy v2.1", "Low-risk Routing Rule", "Standard Verification"],
-      action:   "Auto-approved and recorded"
+      tlKey: "LOW",
+      tx:  { desc: "Routine Payout",    net: "USDC", amt: "$3,100",   risk: "LOW",    rc: "badge-low"    },
+      dec: { rec: "APPROVE",   risk: "LOW",    rc: "badge-low",
+             why:      ["Amount within policy threshold", "Known beneficiary wallet", "Routine vendor payout pattern"],
+             policies: ["Vendor Payout Policy v2.1", "Low-risk Auto Review Rule", "Standard Verification"],
+             action:   "Auto-reviewed — ledger recorded" }
     },
     {
-      rec: "ESCALATED",risk: "HIGH",   rc: "badge-high",
-      why:      ["Velocity anomaly detected", "Destination wallet — first occurrence", "Treasury threshold exceeded"],
-      policies: ["Escalation Verification Rule", "High-risk Operator Workflow", "Treasury Guardrail Policy"],
-      action:   "Operator escalation required"
+      tlKey: "HIGH",
+      tx:  { desc: "Treasury Approval", net: "USDT", amt: "$210,000", risk: "HIGH",   rc: "badge-high"   },
+      dec: { rec: "ESCALATED", risk: "HIGH",   rc: "badge-high",
+             why:      ["Velocity anomaly detected", "Destination wallet — first occurrence", "Treasury threshold exceeded"],
+             policies: ["Escalation Verification Rule", "High-risk Operator Workflow", "Treasury Guardrail Policy"],
+             action:   "Operator escalation required" }
     },
     {
-      rec: "REVIEW",   risk: "MEDIUM", rc: "badge-medium",
-      why:      ["Vendor payout pattern mismatch", "New IBAN — pending verification", "Amount near review threshold"],
-      policies: ["Vendor Payout Policy v1.4", "Risk Confidence Threshold", "Operational Review Policy v1.0"],
-      action:   "Secondary approval pending"
+      tlKey: "MEDIUM",
+      tx:  { desc: "New Beneficiary",   net: "USDC", amt: "$12,300",  risk: "MEDIUM", rc: "badge-medium" },
+      dec: { rec: "REVIEW",    risk: "MEDIUM", rc: "badge-medium",
+             why:      ["Vendor payout pattern mismatch", "New IBAN — pending verification", "Amount near review threshold"],
+             policies: ["Vendor Payout Policy v1.4", "Risk Confidence Threshold", "Operational Review Policy v1.0"],
+             action:   "Secondary approval pending" }
+    },
+    {
+      tlKey: "BLOCK",
+      tx:  { desc: "Compliance Hold",   net: "ETH",  amt: "$67,000",  risk: "HIGH",   rc: "badge-high"   },
+      dec: { rec: "BLOCK",     risk: "HIGH",   rc: "badge-high",
+             why:      ["Sanctions screening requires hold", "Counterparty risk unresolved", "Policy violation detected"],
+             policies: ["Sanctions Screening Policy", "Counterparty Risk Rule", "Manual Hold Policy"],
+             action:   "Blocked — compliance hold recorded" }
     }
   ];
 
@@ -2211,6 +2202,12 @@ function selectTransaction(type, row) {
   var decHashEl   = document.getElementById("proofHash");
   var decStatusEl = document.getElementById("statusBox");
 
+  /* ── DOM: Transaction Queue / Selected TX ── */
+  var selectedTxEl    = document.getElementById("selectedTxBox");
+
+  /* ── DOM: Review Timeline ── */
+  var reviewTimelineEl = document.getElementById("reviewTimeline");
+
   /* ── DOM: Replay Panel ── */
   var replayBtnEl     = document.getElementById("replayBtn");
   var replayBodyEl    = document.getElementById("replayBody");
@@ -2223,12 +2220,13 @@ function selectTransaction(type, row) {
   var idx        = 0;
   var curVerId   = "";
   var curDecId   = "";
-  var txCounter  = 2431;
-  var autoReview = 94;
-  var scenIdx    = 0;
-  var txIdx      = 0;
-  var txSuffix   = 18476;
+  var txCounter    = 2431;
+  var autoReview   = 94;
+  var cycleIdx     = 0;
+  var txSuffix     = 18476;
   var liveRow      = null;
+  var curScenario  = null;
+  var curTxId      = "";
   var lastPrevHash = "";
   var lastCurrHash = "";
   var lastSnapshot = null;
@@ -2361,12 +2359,18 @@ function selectTransaction(type, row) {
     return row;
   }
 
-  /* ── Queue: mark verified ── */
+  /* ── Queue: mark completed with scenario-aware status ── */
   function completeLiveRow() {
     if (!liveRow) return;
     liveRow.classList.remove("live-verifying");
     var pill = liveRow.querySelector(".status-pill");
-    if (pill) { pill.className = "status-pill verified"; pill.textContent = "Verified"; }
+    if (pill) {
+      var d = curScenario ? curScenario.dec : null;
+      if      (d && d.rec === "BLOCK")       { pill.className = "status-pill blocked";  pill.textContent = "Blocked"; }
+      else if (d && d.risk === "LOW")        { pill.className = "status-pill approved"; pill.textContent = "Auto-reviewed"; }
+      else if (d && d.rec === "ESCALATED")   { pill.className = "status-pill escalated"; pill.textContent = "Escalated"; }
+      else                                   { pill.className = "status-pill verified"; pill.textContent = "Verified"; }
+    }
     liveRow = null;
   }
 
@@ -2382,34 +2386,53 @@ function selectTransaction(type, row) {
     if (kpiLatEl) { kpiLatEl.textContent = latMs; flashEl(kpiLatEl); }
   }
 
-  /* ── Decision Output update ── */
+  /* ── Decision Output update — uses curScenario picked at newRun() ── */
   function updateDecision() {
-    var s = scenarios[scenIdx % scenarios.length];
-    scenIdx++;
-    if (decRecEl)    decRecEl.textContent  = s.rec;
-    if (decRiskEl)   decRiskEl.textContent = s.risk;
-    if (decBadgeEl)  decBadgeEl.innerHTML  = "<span class=\"badge " + s.rc + "\">" + s.risk + "</span>";
-    if (decWhyEl)    decWhyEl.innerHTML    = s.why.map(function (w) { return "<li>" + w + "</li>"; }).join("");
-    if (decPolEl)    decPolEl.innerHTML    = s.policies.map(function (p) { return "<li>" + p + "</li>"; }).join("");
-    if (decProofEl)  decProofEl.innerHTML  = "<span class=\"proof-ok\">Verified ✅</span>";
-    if (decHashEl)   decHashEl.textContent = "Proof hash: 0x" + hex(8) + "…";
-    if (decStatusEl) decStatusEl.textContent = "Verification complete — " + s.action;
-    /* Step 4: persist snapshot for replay */
+    if (!curScenario) return;
+    var d = curScenario.dec;
+
+    if (decRecEl)    decRecEl.textContent  = d.rec;
+    if (decRiskEl)   decRiskEl.textContent = d.risk;
+    if (decBadgeEl)  decBadgeEl.innerHTML  = "<span class=\"badge " + d.rc + "\">" + d.risk + "</span>";
+    if (decWhyEl)    decWhyEl.innerHTML    = d.why.map(function (w) { return "<li>" + w + "</li>"; }).join("");
+    if (decPolEl)    decPolEl.innerHTML    = d.policies.map(function (p) { return "<li>" + p + "</li>"; }).join("");
+    if (decProofEl)  decProofEl.innerHTML  = d.rec === "BLOCK"
+      ? "<span class=\"proof-wait\">Blocked ⚠️</span>"
+      : "<span class=\"proof-ok\">Verified ✅</span>";
+    if (decHashEl)   decHashEl.textContent = "Proof hash: " + lastCurrHash;
+    if (decStatusEl) decStatusEl.textContent = "Verification complete — " + d.action;
+
+    /* Review Timeline */
+    updateReviewTimeline(curScenario.tlKey);
+
+    /* Selected TX final state */
+    var finalState, finalNote;
+    if      (d.rec === "BLOCK")       { finalState = "Blocked";       finalNote = "Compliance hold recorded"; }
+    else if (d.risk === "LOW")        { finalState = "Auto-approved";  finalNote = "Ledger recorded"; }
+    else if (d.rec === "ESCALATED")   { finalState = "Escalated";      finalNote = "Manager approval required"; }
+    else                              { finalState = "Verified";       finalNote = "Ledger recorded"; }
+    updateSelectedTx(curTxId, finalState, finalNote);
+
+    /* Persist snapshot for Replay */
     lastSnapshot = {
       decId:    curDecId,
       verId:    curVerId,
       ts:       isoTs(),
-      policy:   s.policies[0],
-      decision: s.rec,
-      action:   s.action,
+      policy:   d.policies[0],
+      decision: d.rec,
+      action:   d.action,
       prevHash: lastPrevHash,
       currHash: lastCurrHash
     };
     if (replayBtnEl && replayBtnEl.disabled) replayBtnEl.disabled = false;
   }
 
-  /* ── New cycle: reset all panels + inject queue row ── */
+  /* ── New cycle: pick scenario, reset all panels, inject queue row ── */
   function newRun() {
+    /* Pick this cycle's definition (TX + decision + timeline paired) */
+    curScenario = cycleDefs[cycleIdx % cycleDefs.length];
+    cycleIdx++;
+
     var d  = new Date();
     var ds = "" + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate());
     curVerId = "ver_" + hex(6);
@@ -2427,12 +2450,14 @@ function selectTransaction(type, row) {
     if (ledgerCurrEl)  ledgerCurrEl.textContent  = "—";
     ledgerStatus("Pending");
 
-    /* Queue: inject live transaction row */
-    var tx   = txPool[txIdx % txPool.length];
-    txIdx++;
+    /* Queue: inject live transaction row using curScenario.tx */
     var txId = "TX-" + txSuffix++;
-    liveRow  = injectQueueRow(txId, tx);
-    addLog("Transaction " + txId + " submitted for verification");
+    curTxId  = txId;
+    liveRow  = injectQueueRow(txId, curScenario.tx);
+
+    /* Selected TX: show Verifying state immediately */
+    updateSelectedTx(curTxId, "Verifying", "Policy evaluation in progress");
+    addLog("Transaction " + curTxId + " submitted for verification");
   }
 
   /* ── Main tick: drives all panels in sync ── */
@@ -2493,9 +2518,65 @@ function selectTransaction(type, row) {
         lastCurrHash = ch;
         ledgerCurrEl.textContent = ch;
       }
+      /* Mid-cycle selectedTx update after Approval Workflow (idx 4) */
+      if (idx === 4 && curScenario) {
+        var dr = curScenario.dec;
+        var ms, mn;
+        if      (dr.rec === "BLOCK")      { ms = "Compliance hold";  mn = "Policy violation detected"; }
+        else if (dr.risk === "LOW")       { ms = "Auto-approved";    mn = "Routing to ledger"; }
+        else if (dr.rec === "ESCALATED")  { ms = "Escalated";        mn = "Manager approval required"; }
+        else                              { ms = "Approval required"; mn = "Operator review required"; }
+        updateSelectedTx(curTxId, ms, mn);
+      }
       idx++;
       tick();
     }, 600 + Math.floor(Math.random() * 500));
+  }
+
+  /* ══ Step 5: Selected TX + Review Timeline helpers ══ */
+  var tlTemplates = {
+    LOW: [
+      { title: "Input received",         text: "Transaction submitted for verification." },
+      { title: "Auto-review completed",  text: "Low-risk pattern confirmed. No escalation needed." },
+      { title: "Ledger record created",  text: "Verification hash generated and audit trail recorded." }
+    ],
+    MEDIUM: [
+      { title: "Input received",              text: "Transaction submitted for verification." },
+      { title: "Risk scored",                 text: "Moderate risk detected. Secondary review triggered." },
+      { title: "Secondary approval pending",  text: "Operator review initiated." },
+      { title: "Verification complete",       text: "Verification hash generated and audit trail recorded." }
+    ],
+    HIGH: [
+      { title: "AI flagged transaction",      text: "High-value transfer triggered operational review." },
+      { title: "Escalated to operator",       text: "Risk threshold exceeded internal review policy." },
+      { title: "Manager approval required",   text: "Awaiting senior operator sign-off." },
+      { title: "Verification hash generated", text: "Audit trail recorded and ledger entry committed." }
+    ],
+    BLOCK: [
+      { title: "Policy violation detected",   text: "Sanctions screening triggered compliance hold." },
+      { title: "Compliance hold created",     text: "Transaction blocked pending compliance review." },
+      { title: "Ledger proof recorded",       text: "Immutable block record written to audit ledger." }
+    ]
+  };
+
+  function updateSelectedTx(txId, state, note) {
+    if (!selectedTxEl) return;
+    selectedTxEl.innerHTML = "Selected transaction: <strong>" + txId + "</strong> / " + state + " / " + note;
+  }
+
+  function updateReviewTimeline(tlKey) {
+    if (!reviewTimelineEl) return;
+    var items = tlTemplates[tlKey] || tlTemplates.HIGH;
+    var now = new Date();
+    reviewTimelineEl.innerHTML = items.map(function (item, i) {
+      var t = new Date(now.getTime() - (items.length - 1 - i) * 90000);
+      var ts = pad(t.getUTCHours()) + ":" + pad(t.getUTCMinutes()) + " UTC";
+      return '<div class="timeline-item">' +
+        '<div class="timeline-time">' + ts + '</div>' +
+        '<div class="timeline-title">' + item.title + '</div>' +
+        '<div class="timeline-text">' + item.text + '</div>' +
+        '</div>';
+    }).join("");
   }
 
   /* ══ Step 4: Replay / Reconstruction ══ */
