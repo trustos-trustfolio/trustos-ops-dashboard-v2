@@ -113,6 +113,22 @@ Track high-impact agent actions (database writes, fund transfers, external API c
 
 ---
 
+## Local Setup
+
+Open `index.html` in a browser. No server or API key required.
+
+```sh
+# Option A — open directly
+open index.html
+
+# Option B — serve locally
+npx serve .
+```
+
+All data is simulated. The dashboard runs entirely in the browser with no backend dependency.
+
+---
+
 ## Early Access
 
 Trust OS is in private beta.
