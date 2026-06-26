@@ -8,7 +8,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<title>Trust OS — Financial Operations Verification Dashboard</title>
+<title>Trust OS — Financial Decision Verification Dashboard</title>
 
 <style>
   * { box-sizing: border-box; }
@@ -1473,15 +1473,19 @@
       <div class="eyebrow">FINANCIAL OPERATIONS</div>
 
 <h1>
-Trust OS — Financial Operations Verification Dashboard
+Trust OS — Financial Decision Verification Dashboard
 </h1>
 
       <p class="subtitle">
 
-Verify financial decisions before execution across payment operations, treasury workflows, stablecoin infrastructure, and regulated financial systems.
+Verify every financial decision before execution across payment operations, treasury workflows, stablecoin infrastructure, and regulated financial systems.
       </p>
 
-      <p style="color:#94a3b8; font-size:13px; margin-top:6px; margin-bottom:0;">
+      <p style="color:#67e8f9; font-size:12px; font-weight:600; letter-spacing:0.04em; margin-top:10px; margin-bottom:4px;">
+        One Verification API. Multiple Financial Workflows.
+      </p>
+
+      <p style="color:#94a3b8; font-size:13px; margin-top:0; margin-bottom:0;">
         Built for payment providers, treasury platforms, stablecoin issuers, banks, and regulated financial infrastructure.
       </p>
 
@@ -1509,27 +1513,27 @@ Verify financial decisions before execution across payment operations, treasury 
 
 <div class="ops-kpi-grid">
   <div class="ops-kpi-card">
-    <div class="ops-kpi-label">Verified operations</div>
+    <div class="ops-kpi-label">Verified Decisions</div>
     <div class="ops-kpi-value" id="kpiTxCount">2,431</div>
-    <div class="ops-kpi-note">Financial operations verified · live</div>
+    <div class="ops-kpi-note">Financial decisions verified</div>
   </div>
 
   <div class="ops-kpi-card">
-    <div class="ops-kpi-label">Policy-compliant</div>
+    <div class="ops-kpi-label">Policy Compliance</div>
     <div class="ops-kpi-value" id="kpiAutoReview">94%</div>
-    <div class="ops-kpi-note">Decisions cleared by policy controls</div>
+    <div class="ops-kpi-note">Automatically approved by policy</div>
   </div>
 
   <div class="ops-kpi-card">
-    <div class="ops-kpi-label">Compliance review</div>
+    <div class="ops-kpi-label">Manual Compliance Reviews</div>
     <div class="ops-kpi-value" id="kpiEscalated">6%</div>
-    <div class="ops-kpi-note">Routed to manual compliance review</div>
+    <div class="ops-kpi-note">Escalated for compliance review</div>
   </div>
 
   <div class="ops-kpi-card">
-    <div class="ops-kpi-label">Verification latency</div>
+    <div class="ops-kpi-label">Average Verification Time</div>
     <div class="ops-kpi-value" id="kpiLatency">—</div>
-    <div class="ops-kpi-note">Current verification cycle latency</div>
+    <div class="ops-kpi-note">Current verification latency</div>
   </div>
 </div>
 
@@ -1553,8 +1557,8 @@ Verify financial decisions before execution across payment operations, treasury 
 
   <div class="verify-head">
     <div>
-      <h2 style="margin-bottom:2px;">Real-time Verification Engine</h2>
-      <div class="verify-sub">Decision governance pipeline · streaming</div>
+      <h2 style="margin-bottom:2px;">Financial Decision Verification Engine</h2>
+      <div class="verify-sub">Policy-based verification engine for financial operations.</div>
     </div>
     <div class="live-badge"><span class="live-dot"></span> LIVE</div>
   </div>
@@ -1825,7 +1829,7 @@ Verify financial decisions before execution across payment operations, treasury 
 
             <div class="use-case-card-title">Payment Authorization</div>
 
-            <div class="use-case-card-text">Verify payment decisions before execution with a full compliance and audit record for every authorization</div>
+            <div class="use-case-card-text">Verify payment approvals before execution.</div>
 
           </div>
 
@@ -1839,7 +1843,7 @@ Verify financial decisions before execution across payment operations, treasury 
 
             <div class="use-case-card-title">Stablecoin Settlement</div>
 
-            <div class="use-case-card-text">Pre-execution verification for stablecoin issuers, payment rails, and on-chain settlement systems</div>
+            <div class="use-case-card-text">Verify settlement decisions across stablecoin infrastructure.</div>
 
           </div>
 
@@ -1853,7 +1857,7 @@ Verify financial decisions before execution across payment operations, treasury 
 
             <div class="use-case-card-title">Treasury Operations</div>
 
-            <div class="use-case-card-text">Policy controls and auditability for treasury disbursements, liquidity transfers, and fund movement</div>
+            <div class="use-case-card-text">Verify treasury transfers with policy enforcement.</div>
 
           </div>
 
@@ -1867,7 +1871,7 @@ Verify financial decisions before execution across payment operations, treasury 
 
             <div class="use-case-card-title">Cross-border Payments</div>
 
-            <div class="use-case-card-text">Compliance verification and operational confidence for cross-border flows and correspondent banking</div>
+            <div class="use-case-card-text">Verify international payment workflows before execution.</div>
 
           </div>
 
@@ -1881,7 +1885,7 @@ Verify financial decisions before execution across payment operations, treasury 
 
             <div class="use-case-card-title">Banking Operations</div>
 
-            <div class="use-case-card-text">Verifiable decision records for retail banking, lending approvals, and regulated payment operations</div>
+            <div class="use-case-card-text">Support operational controls for regulated financial institutions.</div>
 
           </div>
 
@@ -1895,7 +1899,7 @@ Verify financial decisions before execution across payment operations, treasury 
 
             <div class="use-case-card-title">Payment Processors</div>
 
-            <div class="use-case-card-text">Risk controls and audit traceability for merchant processing, interchange routing, and settlement</div>
+            <div class="use-case-card-text">Deploy alongside existing payment infrastructure without replacing core systems.</div>
 
           </div>
 
@@ -1968,15 +1972,15 @@ Verify financial decisions before execution across payment operations, treasury 
 
   function setWhyAndPolicy() {
     whyList.innerHTML = `
-      <li>Transaction amount checked against risk threshold</li>
-      <li>Destination wallet risk evaluated</li>
-      <li>User context analyzed before execution</li>
+      <li>Transaction amount evaluated against policy threshold</li>
+      <li>Destination address risk assessed</li>
+      <li>Transaction context verified before execution</li>
     `;
 
     policyList.innerHTML = `
-      <li>Compliance Verification Policy v1.0</li>
-      <li>Risk Confidence Threshold</li>
-      <li>Escalation Compliance Rule</li>
+      <li>AML Compliance Policy v1.0</li>
+      <li>High-value Threshold Policy</li>
+      <li>Escalation Policy v2.0</li>
     `;
   }
 
@@ -2040,7 +2044,7 @@ Verify financial decisions before execution across payment operations, treasury 
       `<span class="proof-ok">Verified ✅</span>`;
 
     proofHash.textContent =
-      `Verification Hash:${simulatedData.proof_hash.slice(0, 24)}...`;
+      `Verification Hash: ${simulatedData.proof_hash.slice(0, 24)}...`;
 
     setStatus(
       `Financial verification completed: ${simulatedData.decision_id}`
@@ -2093,13 +2097,13 @@ function selectTransaction(type, row) {
     `;
 
     policyList.innerHTML = `
-      <li>Compliance Verification Policy v1.0</li>
-      <li>Low-risk Policy Pass</li>
-      <li>Standard Verification Rule</li>
+      <li>AML Compliance Policy v2.1</li>
+      <li>Standard Payment Policy</li>
+      <li>Low-risk Approval Rule</li>
     `;
 
     proofStatus.innerHTML = `<span class="proof-ok">Verified ✅</span>`;
-    proofHash.textContent = `Verification Hash:0xapproveddemo...`;
+    proofHash.textContent = `Verification Hash: 0xapproveddemo...`;
 
     selectedTxBox.innerHTML =
       `Selected transaction: <strong>${txId}</strong> / Approved / Policy-verified`;
@@ -2120,13 +2124,13 @@ function selectTransaction(type, row) {
     `;
 
     policyList.innerHTML = `
-      <li>Compliance Verification Policy v1.0</li>
-      <li>Risk Confidence Threshold</li>
-      <li>Escalation Compliance Rule</li>
+      <li>AML Compliance Policy v1.0</li>
+      <li>High-value Threshold Policy</li>
+      <li>Escalation Policy v2.0</li>
     `;
 
     proofStatus.innerHTML = `<span class="proof-ok">Verified ✅</span>`;
-    proofHash.textContent = `Verification Hash:0xpendingdemo...`;
+    proofHash.textContent = `Verification Hash: 0xpendingdemo...`;
 
     selectedTxBox.innerHTML =
       `Selected transaction: <strong>${txId}</strong> / Pending Review / Compliance review required`;
@@ -2147,13 +2151,13 @@ function selectTransaction(type, row) {
     `;
 
     policyList.innerHTML = `
-      <li>Compliance Verification Policy v1.0</li>
-      <li>Escalation Compliance Rule</li>
-      <li>High-risk Compliance Workflow</li>
+      <li>AML Policy v3.2</li>
+      <li>Cross-border Settlement Policy</li>
+      <li>High-value Threshold Policy</li>
     `;
 
     proofStatus.innerHTML = `<span class="proof-ok">Verified ✅</span>`;
-    proofHash.textContent = `Verification Hash:0xescalateddemo...`;
+    proofHash.textContent = `Verification Hash: 0xescalateddemo...`;
 
     selectedTxBox.innerHTML =
       `Selected transaction: <strong>${txId}</strong> / Escalated / Compliance review required`;
@@ -2163,30 +2167,30 @@ function selectTransaction(type, row) {
   }
 
   if (type === "blocked") {
-    recommendationValue.textContent = "Blocked";
+    recommendationValue.textContent = "Declined";
     riskLevelValue.textContent = "HIGH";
     setBadge("HIGH");
 
     whyList.innerHTML = `
-      <li>Execution risk exceeded internal policy</li>
-      <li>Destination requires additional review</li>
-      <li>Policy enforcement hold applied</li>
+      <li>Compliance controls triggered policy hold</li>
+      <li>Destination address requires sanctions review</li>
+      <li>Transaction declined pending compliance resolution</li>
     `;
 
     policyList.innerHTML = `
-      <li>Compliance Verification Policy v1.0</li>
-      <li>Execution Guardrail Rule</li>
-      <li>Compliance Escalation Required</li>
+      <li>Sanctions Screening Policy</li>
+      <li>Custody Withdrawal Policy</li>
+      <li>Manual Hold Policy</li>
     `;
 
     proofStatus.innerHTML = `<span class="proof-wait">Blocked ⚠️</span>`;
-    proofHash.textContent = `Verification Hash:0xblockeddemo...`;
+    proofHash.textContent = `Verification Hash: 0xblockeddemo...`;
 
     selectedTxBox.innerHTML =
-      `Selected transaction: <strong>${txId}</strong> / Blocked / Compliance policy hold`;
+      `Selected transaction: <strong>${txId}</strong> / Declined / Compliance policy hold`;
 
     statusBox.textContent =
-      `${txId} selected. Blocked by compliance policy.`;
+      `${txId} selected. Declined — compliance policy hold.`;
   }
 
   /* Trigger LIVE engine for this TX */
@@ -2233,32 +2237,32 @@ function selectTransaction(type, row) {
       tlKey: "HIGH",
       tx:  { desc: "Cross-border Settlement", net: "USDC", amt: "$84,500",  risk: "HIGH",   rc: "badge-high"   },
       dec: { rec: "REVIEW",    risk: "HIGH",   rc: "badge-high",
-             why:      ["Transfer exceeds policy threshold", "New destination wallet detected", "Cross-border settlement flag"],
-             policies: ["AML Policy v3.2", "High-value Threshold Rule", "Cross-border Settlement Policy"],
+             why:      ["Transfer exceeds high-value policy threshold", "New destination address — first occurrence", "Cross-border settlement compliance flag"],
+             policies: ["AML Policy v3.2", "High-value Threshold Policy", "Cross-border Settlement Policy"],
              action:   "Compliance escalation — approval required" }
     },
     {
       tlKey: "LOW",
       tx:  { desc: "Merchant Settlement", net: "USDC", amt: "$3,100",   risk: "LOW",    rc: "badge-low"    },
       dec: { rec: "APPROVE",   risk: "LOW",    rc: "badge-low",
-             why:      ["Amount within policy threshold", "Known beneficiary wallet", "Routine vendor payout pattern"],
-             policies: ["Vendor Payment Policy v2.1", "Low-risk Policy Pass Rule", "Standard Verification"],
+             why:      ["Amount within policy threshold", "Known beneficiary address verified", "Routine merchant settlement pattern"],
+             policies: ["AML Compliance Policy v2.1", "Standard Payment Policy", "Low-risk Approval Rule"],
              action:   "Policy-verified — ledger recorded" }
     },
     {
       tlKey: "HIGH",
       tx:  { desc: "Treasury Liquidity Transfer", net: "USDT", amt: "$210,000", risk: "HIGH",   rc: "badge-high"   },
       dec: { rec: "ESCALATED", risk: "HIGH",   rc: "badge-high",
-             why:      ["Velocity anomaly detected", "Destination wallet — first occurrence", "Treasury threshold exceeded"],
-             policies: ["Escalation Compliance Rule", "High-risk Compliance Workflow", "Treasury Guardrail Policy"],
+             why:      ["Velocity anomaly detected on treasury account", "Destination address — first occurrence", "Treasury transfer threshold exceeded"],
+             policies: ["Treasury Transfer Policy", "High-value Threshold Policy", "Escalation Policy v2.0"],
              action:   "Compliance escalation required" }
     },
     {
       tlKey: "MEDIUM",
       tx:  { desc: "Stablecoin Redemption", net: "USDC", amt: "$12,300",  risk: "MEDIUM", rc: "badge-medium" },
       dec: { rec: "REVIEW",    risk: "MEDIUM", rc: "badge-medium",
-             why:      ["Vendor payout pattern mismatch", "New IBAN — pending verification", "Amount near review threshold"],
-             policies: ["Vendor Payment Policy v1.4", "Risk Confidence Threshold", "Compliance Verification Policy v1.0"],
+             why:      ["Stablecoin redemption pattern outside normal range", "Beneficiary address pending verification", "Amount near review threshold"],
+             policies: ["AML Compliance Policy v1.0", "High-value Threshold Policy", "Stablecoin Settlement Policy"],
              action:   "Compliance approval pending" }
     },
     {
@@ -2266,7 +2270,7 @@ function selectTransaction(type, row) {
       tx:  { desc: "Custody Withdrawal", net: "ETH",  amt: "$67,000",  risk: "HIGH",   rc: "badge-high"   },
       dec: { rec: "BLOCK",     risk: "HIGH",   rc: "badge-high",
              why:      ["Sanctions screening requires hold", "Counterparty risk unresolved", "Policy violation detected"],
-             policies: ["Sanctions Screening Policy", "Counterparty Risk Rule", "Manual Hold Policy"],
+             policies: ["Sanctions Screening Policy", "Custody Withdrawal Policy", "Manual Hold Policy"],
              action:   "Blocked — compliance hold recorded" }
     }
   ];
@@ -2400,7 +2404,7 @@ function selectTransaction(type, row) {
   /* ── Clear Decision Output at the start of each new cycle ── */
   function clearDecisionOutput() {
     if (decProofEl)       decProofEl.innerHTML    = '<span class="proof-wait">Verifying…</span>';
-    if (decHashEl)        decHashEl.textContent   = "Verification Hash:—";
+    if (decHashEl)        decHashEl.textContent   = "Verification Hash: —";
     if (decStatusEl)      decStatusEl.textContent = "Verification in progress…";
     if (reviewTimelineEl) reviewTimelineEl.innerHTML =
       '<div class="timeline-item" style="color:#475569;font-size:13px;">' +
@@ -2546,7 +2550,7 @@ function selectTransaction(type, row) {
     if (!curScenario) return;
     var d = curScenario.dec;
 
-    if (decRecEl)    decRecEl.textContent  = d.rec;
+    if (decRecEl)    decRecEl.textContent  = ({APPROVE:"Approved", REVIEW:"Requires Compliance Review", ESCALATED:"Requires Compliance Review", BLOCK:"Declined"}[d.rec] || d.rec);
     if (decRiskEl)   decRiskEl.textContent = d.risk;
     if (decBadgeEl)  decBadgeEl.innerHTML  = "<span class=\"badge " + d.rc + "\">" + d.risk + "</span>";
     if (decWhyEl)    decWhyEl.innerHTML    = d.why.map(function (w) { return "<li>" + w + "</li>"; }).join("");
@@ -2554,7 +2558,7 @@ function selectTransaction(type, row) {
     if (decProofEl)  decProofEl.innerHTML  = d.rec === "BLOCK"
       ? "<span class=\"proof-wait\">Blocked ⚠️</span>"
       : "<span class=\"proof-ok\">Verified ✅</span>";
-    if (decHashEl)   decHashEl.textContent = "Verification Hash:" + lastCurrHash;
+    if (decHashEl)   decHashEl.textContent = "Verification Hash: " +lastCurrHash;
     if (decStatusEl) decStatusEl.textContent = "Verification complete — " + d.action;
 
     /* Review Timeline */
@@ -2562,7 +2566,7 @@ function selectTransaction(type, row) {
 
     /* Selected TX final state */
     var finalState, finalNote;
-    if      (d.rec === "BLOCK")       { finalState = "Blocked";       finalNote = "Compliance hold recorded"; }
+    if      (d.rec === "BLOCK")       { finalState = "Declined";      finalNote = "Compliance hold recorded"; }
     else if (d.risk === "LOW")        { finalState = "Policy-verified"; finalNote = "Ledger recorded"; }
     else if (d.rec === "ESCALATED")   { finalState = "Escalated";      finalNote = "Compliance escalation required"; }
     else                              { finalState = "Verified";       finalNote = "Ledger recorded"; }
@@ -2686,7 +2690,7 @@ function selectTransaction(type, row) {
         lastCurrHash = ch;
         ledgerCurrEl.textContent = ch;
         /* Immediately sync Decision Output proof hash to match Ledger Current Hash */
-        if (decHashEl) decHashEl.textContent = "Verification Hash:" + ch;
+        if (decHashEl) decHashEl.textContent = "Verification Hash: " +ch;
       }
       /* Mid-cycle selectedTx + progress update */
       if (idx === 4 && curScenario) {
@@ -2708,25 +2712,27 @@ function selectTransaction(type, row) {
   var tlTemplates = {
     LOW: [
       { title: "Verification initiated",       text: "Payment submitted for policy verification." },
-      { title: "Policy evaluation completed",  text: "Low-risk transaction confirmed. Compliance controls satisfied." },
-      { title: "Ledger committed",             text: "Verification hash recorded. Audit trail complete." }
+      { title: "Policy evaluation completed",  text: "Compliance controls satisfied. No escalation required." },
+      { title: "Risk assessment completed",    text: "Low-risk pattern confirmed. Decision approved by policy." },
+      { title: "Ledger recorded",              text: "Verification hash committed to immutable audit ledger." }
     ],
     MEDIUM: [
       { title: "Verification initiated",       text: "Transaction submitted for compliance verification." },
-      { title: "Risk scored",                  text: "Moderate risk detected. Secondary verification triggered." },
-      { title: "Compliance review required",   text: "Transaction routed for compliance review." },
+      { title: "Risk assessment completed",    text: "Moderate risk detected. Secondary verification triggered." },
+      { title: "Compliance review required",   text: "Transaction routed to compliance team for review." },
       { title: "Verification completed",       text: "Verification hash generated. Audit record committed." }
     ],
     HIGH: [
       { title: "Verification initiated",       text: "High-value transaction submitted for compliance verification." },
-      { title: "Compliance review required",   text: "Risk threshold exceeded. Escalated for compliance review." },
-      { title: "Manager approval required",    text: "Awaiting senior compliance authorization." },
-      { title: "Ledger committed",             text: "Verification hash recorded. Immutable audit trail committed." }
+      { title: "Risk assessment completed",    text: "Risk threshold exceeded. Escalation triggered." },
+      { title: "Compliance review required",   text: "Transaction escalated for senior compliance review." },
+      { title: "Ledger recorded",              text: "Verification hash committed. Immutable audit trail complete." }
     ],
     BLOCK: [
+      { title: "Verification initiated",       text: "Transaction submitted for compliance verification." },
       { title: "Policy violation detected",    text: "Compliance controls triggered a policy hold." },
-      { title: "Transaction blocked",          text: "Transaction blocked pending compliance review." },
-      { title: "Ledger proof recorded",        text: "Block record written to immutable audit ledger." }
+      { title: "Compliance review required",   text: "Transaction declined pending compliance resolution." },
+      { title: "Ledger recorded",              text: "Compliance hold recorded to immutable audit ledger." }
     ]
   };
 
