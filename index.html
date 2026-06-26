@@ -2329,9 +2329,10 @@ function selectTransaction(type, row) {
   var lastSnapshot = null;
   var replayStepEls  = [];
   var replayRunning  = false;
-  var tickTimer      = null;
-  var verifyCount    = 10842;
-  var ledgerCount    = 1248442;
+  var tickTimer          = null;
+  var verifyCount        = 10842;
+  var ledgerCount        = 1248442;
+  var currentCycleStartedAt = null;
 
   /* ── Helpers ── */
   function pad(n) { return n < 10 ? "0" + n : "" + n; }
@@ -2347,8 +2348,8 @@ function selectTransaction(type, row) {
     return pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
   }
 
-  function isoTs() {
-    var d = new Date();
+  function isoTs(d) {
+    d = d || new Date();
     return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) +
       " " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()) + " JST";
   }
@@ -2553,7 +2554,7 @@ function selectTransaction(type, row) {
     lastSnapshot = {
       decId:    curDecId,
       verId:    curVerId,
-      ts:       isoTs(),
+      ts:       isoTs(currentCycleStartedAt),
       policy:   d.policies[0],
       decision: d.rec,
       action:   d.action,
@@ -2570,6 +2571,7 @@ function selectTransaction(type, row) {
     cycleIdx++;
 
     var d  = new Date();
+    currentCycleStartedAt = d;
     var ds = "" + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate());
     curVerId = "ver_" + hex(6);
     curDecId = "dec_" + ds + "_" + ("000" + Math.floor(Math.random() * 9999)).slice(-4);
@@ -2650,7 +2652,7 @@ function selectTransaction(type, row) {
       ledgerStatus("Writing");
       var ph = shortHash();
       lastPrevHash = ph;
-      if (ledgerTsEl)   ledgerTsEl.textContent  = isoTs();
+      if (ledgerTsEl)   ledgerTsEl.textContent  = isoTs(currentCycleStartedAt);
       if (ledgerPrevEl) ledgerPrevEl.textContent = ph;
     }
 
@@ -2718,9 +2720,9 @@ function selectTransaction(type, row) {
   function updateReviewTimeline(tlKey) {
     if (!reviewTimelineEl) return;
     var items = tlTemplates[tlKey] || tlTemplates.HIGH;
-    var now = new Date();
+    var base  = currentCycleStartedAt || new Date();
     reviewTimelineEl.innerHTML = items.map(function (item, i) {
-      var t = new Date(now.getTime() - (items.length - 1 - i) * 90000);
+      var t  = new Date(base.getTime() + i * 60000);
       var ts = pad(t.getUTCHours()) + ":" + pad(t.getUTCMinutes()) + " UTC";
       return '<div class="timeline-item">' +
         '<div class="timeline-time">' + ts + '</div>' +
@@ -2770,6 +2772,7 @@ function selectTransaction(type, row) {
 
     /* Reset engine IDs */
     var d  = new Date();
+    currentCycleStartedAt = d;
     var ds = "" + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate());
     curVerId = "ver_" + hex(6);
     curDecId = "dec_" + ds + "_" + ("000" + Math.floor(Math.random() * 9999)).slice(-4);
