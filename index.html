@@ -2378,6 +2378,17 @@ function selectTransaction(type, row) {
     setTimeout(function () { el.classList.remove("kpi-flash"); }, 700);
   }
 
+  /* ── Clear Decision Output at the start of each new cycle ── */
+  function clearDecisionOutput() {
+    if (decProofEl)       decProofEl.innerHTML    = '<span class="proof-wait">Verifying…</span>';
+    if (decHashEl)        decHashEl.textContent   = "Proof hash: —";
+    if (decStatusEl)      decStatusEl.textContent = "Verification in progress…";
+    if (reviewTimelineEl) reviewTimelineEl.innerHTML =
+      '<div class="timeline-item" style="color:#475569;font-size:13px;">' +
+      '<div class="timeline-title">Verification in progress…</div>' +
+      '</div>';
+  }
+
   /* ── Build: Verification Engine ── */
   function build() {
     flowEl.innerHTML = "";
@@ -2574,6 +2585,7 @@ function selectTransaction(type, row) {
     if (ledgerPrevEl)  ledgerPrevEl.textContent  = "—";
     if (ledgerCurrEl)  ledgerCurrEl.textContent  = "—";
     ledgerStatus("Pending");
+    clearDecisionOutput();
 
     /* Queue: inject live transaction row using curScenario.tx */
     var txId = "TX-" + txSuffix++;
@@ -2653,6 +2665,8 @@ function selectTransaction(type, row) {
         var ch = shortHash();
         lastCurrHash = ch;
         ledgerCurrEl.textContent = ch;
+        /* Immediately sync Decision Output proof hash to match Ledger Current Hash */
+        if (decHashEl) decHashEl.textContent = "Proof hash: " + ch;
       }
       /* Mid-cycle selectedTx + progress update */
       if (idx === 4 && curScenario) {
@@ -2771,6 +2785,7 @@ function selectTransaction(type, row) {
     if (ledgerPrevEl)  ledgerPrevEl.textContent  = "—";
     if (ledgerCurrEl)  ledgerCurrEl.textContent  = "—";
     ledgerStatus("Pending");
+    clearDecisionOutput();
 
     /* Reset flow panels */
     build();
