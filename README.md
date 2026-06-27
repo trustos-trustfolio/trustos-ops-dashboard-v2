@@ -134,3 +134,35 @@ All data is simulated. The dashboard runs entirely in the browser with no backen
 Trust OS is in private beta.
 
 Contact: admin@trust-os.io
+
+---
+
+## Security
+
+Do not include API keys, secrets, or credentials in issues, pull requests, or commits.
+
+To report a security vulnerability, email **founder@trust-os.io** privately — do not open a public issue.
+
+See [SECURITY.md](SECURITY.md) for the full policy.
+
+---
+
+## Contributing
+
+Issues, documentation improvements, and feature requests are welcome.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines. No API key or backend is required — the dashboard runs entirely in the browser with simulated data.
+
+---
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the full history.
+
+**v1.0.0** — Initial public developer platform release (June 2026).
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
