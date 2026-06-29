@@ -109,7 +109,7 @@ Audit trail for compliance teams in regulated environments: finance, digital ass
 
 ### AI Agent Oversight
 
-Track high-impact agent actions (database writes, fund transfers, external API calls) that required pre-execution verification.
+Track high-impact agent actions (writes, fund transfers, external API calls) that required pre-execution verification.
 
 ---
 
